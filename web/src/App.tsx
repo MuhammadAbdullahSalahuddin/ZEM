@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import Lenis from 'lenis';
 import fakeEventsData from './fake_events.json';
 import { AuditEvent } from './types';
 import { 
@@ -42,8 +43,48 @@ export function App() {
 
   const targetFrameRef = useRef(0);
   const renderedFrameRef = useRef(0);
+  const lenisRef = useRef<Lenis | null>(null);
 
-  // 1. Mouse Inertia Loop (Lerp with trailing momentum)
+  // 1. Lenis Smooth Scroll Engine Initialization (Weighted Inertia)
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.5, // Silky smooth deceleration
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Exponential smooth decay
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 0.9, // Gentle wheel movement
+      touchMultiplier: 1.5,
+    });
+    lenisRef.current = lenis;
+
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    const rafId = requestAnimationFrame(raf);
+
+    // Synchronize 3D frame target with Lenis scroll updates
+    lenis.on('scroll', () => {
+      if (!sequenceContainerRef.current) return;
+      const rect = sequenceContainerRef.current.getBoundingClientRect();
+      const containerHeight = sequenceContainerRef.current.offsetHeight - window.innerHeight;
+      if (containerHeight <= 0) return;
+
+      const scrollProgress = Math.min(Math.max(-rect.top / containerHeight, 0), 1);
+      targetFrameRef.current = Math.min(
+        Math.floor(scrollProgress * (TOTAL_FRAMES - 1)),
+        TOTAL_FRAMES - 1
+      );
+    });
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      lenis.destroy();
+    };
+  }, []);
+
+  // 2. Mouse Inertia Loop (Lerp with momentum)
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       mouseTargetRef.current = { x: e.clientX, y: e.clientY };
@@ -52,8 +93,7 @@ export function App() {
 
     let animId: number;
     const updateMousePhysics = () => {
-      // Lerp formula: current += (target - current) * easeFactor
-      const ease = 0.07; // Smooth gliding inertia
+      const ease = 0.06; // Weighted inertia trailing
       mouseCurrentRef.current.x += (mouseTargetRef.current.x - mouseCurrentRef.current.x) * ease;
       mouseCurrentRef.current.y += (mouseTargetRef.current.y - mouseCurrentRef.current.y) * ease;
 
@@ -72,7 +112,7 @@ export function App() {
     };
   }, []);
 
-  // 2. Preload 240 frames
+  // 3. Preload 240 frames
   useEffect(() => {
     const images: HTMLImageElement[] = [];
     let loadedCount = 0;
@@ -93,27 +133,11 @@ export function App() {
     imagesRef.current = images;
   }, []);
 
-  // 3. Smooth Frame Scrubbing Physics Loop (Damped Momentum)
+  // 4. Smooth Frame Scrubbing Physics Loop (Tied to Lenis)
   useEffect(() => {
-    const handleScroll = () => {
-      if (!sequenceContainerRef.current) return;
-      const rect = sequenceContainerRef.current.getBoundingClientRect();
-      const containerHeight = sequenceContainerRef.current.offsetHeight - window.innerHeight;
-      if (containerHeight <= 0) return;
-
-      const scrollProgress = Math.min(Math.max(-rect.top / containerHeight, 0), 1);
-      targetFrameRef.current = Math.min(
-        Math.floor(scrollProgress * (TOTAL_FRAMES - 1)),
-        TOTAL_FRAMES - 1
-      );
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
     let frameAnimId: number;
     const renderFramePhysics = () => {
-      // Lerp frame number with smooth mechanical deceleration
-      const frameEase = 0.085;
+      const frameEase = 0.1;
       const diff = targetFrameRef.current - renderedFrameRef.current;
       
       if (Math.abs(diff) > 0.01) {
@@ -148,12 +172,11 @@ export function App() {
     frameAnimId = requestAnimationFrame(renderFramePhysics);
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
       cancelAnimationFrame(frameAnimId);
     };
   }, [imagesLoaded]);
 
-  // 4. Scroll Reveal Intersection Observer (Text animates into view on scroll)
+  // 5. Scroll Reveal Intersection Observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -163,7 +186,7 @@ export function App() {
           }
         });
       },
-      { threshold: 0.15, rootMargin: '0px 0px -50px 0px' }
+      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
     );
 
     const elements = document.querySelectorAll('.reveal-init');
@@ -333,7 +356,7 @@ export function App() {
         </div>
       </header>
 
-      {/* HERO SECTION: Editorial High-Contrast Typography (With Scroll Reveal) */}
+      {/* HERO SECTION: Editorial High-Contrast Typography */}
       <section className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-24 text-center">
         <div className="reveal-init inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/20 bg-white/5 font-mono text-xs text-white/70 mb-8 backdrop-blur-md">
           <span>ZERO-TRUST GATEWAY FOR AGENTIC AI</span>
@@ -394,7 +417,7 @@ export function App() {
               </div>
             )}
 
-            {/* High-DPI Canvas with Momentum Rendering */}
+            {/* High-DPI Canvas */}
             <canvas
               ref={canvasRef}
               width={1920}
@@ -402,7 +425,7 @@ export function App() {
               className="w-full h-full object-contain filter drop-shadow-[0_20px_50px_rgba(0,0,0,0.9)]"
             />
 
-            {/* Glossy Mirror Scrollytelling Overlay (Animates with stage) */}
+            {/* Glossy Mirror Scrollytelling Overlay */}
             <div className="absolute bottom-10 left-6 sm:left-12 max-w-md p-6 rounded-xl mirror-panel transition-all duration-300">
               <div className="flex items-center justify-between font-mono text-xs mb-2">
                 <span className="px-2 py-0.5 rounded border border-white/20 bg-white/5 text-[10px] font-bold text-white tracking-wider">
@@ -436,7 +459,7 @@ export function App() {
         </div>
       </section>
 
-      {/* FULL-WIDTH MONOCHROME COCKPIT CONSOLE SECTION (With Scroll Reveals) */}
+      {/* FULL-WIDTH MONOCHROME COCKPIT CONSOLE SECTION */}
       <section id="security-cockpit" className="relative z-10 max-w-7xl mx-auto px-6 py-24">
         
         <div className="reveal-init mb-8">

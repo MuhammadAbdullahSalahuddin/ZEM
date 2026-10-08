@@ -19,7 +19,6 @@ export function App() {
   const [eventsList, setEventsList] = useState<AuditEvent[]>(initialEvents);
   const [selectedEvent, setSelectedEvent] = useState<AuditEvent | null>(initialEvents[1]);
   const [filter, setFilter] = useState<'all' | 'allow' | 'deny'>('all');
-  const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
   const [terminalOpen, setTerminalOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -36,16 +35,44 @@ export function App() {
   const [currentFrame, setCurrentFrame] = useState(0);
   const imagesRef = useRef<HTMLImageElement[]>([]);
 
-  // Mouse spotlight tracker
+  // Physics & Inertia Refs
+  const mouseTargetRef = useRef({ x: -1000, y: -1000 });
+  const mouseCurrentRef = useRef({ x: -1000, y: -1000 });
+  const [spotlightPos, setSpotlightPos] = useState({ x: -1000, y: -1000 });
+
+  const targetFrameRef = useRef(0);
+  const renderedFrameRef = useRef(0);
+
+  // 1. Mouse Inertia Loop (Lerp with trailing momentum)
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      setMousePos({ x: e.clientX, y: e.clientY });
+      mouseTargetRef.current = { x: e.clientX, y: e.clientY };
     };
     window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+
+    let animId: number;
+    const updateMousePhysics = () => {
+      // Lerp formula: current += (target - current) * easeFactor
+      const ease = 0.07; // Smooth gliding inertia
+      mouseCurrentRef.current.x += (mouseTargetRef.current.x - mouseCurrentRef.current.x) * ease;
+      mouseCurrentRef.current.y += (mouseTargetRef.current.y - mouseCurrentRef.current.y) * ease;
+
+      setSpotlightPos({
+        x: Math.round(mouseCurrentRef.current.x * 10) / 10,
+        y: Math.round(mouseCurrentRef.current.y * 10) / 10
+      });
+
+      animId = requestAnimationFrame(updateMousePhysics);
+    };
+    animId = requestAnimationFrame(updateMousePhysics);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      cancelAnimationFrame(animId);
+    };
   }, []);
 
-  // Preload 240 frames
+  // 2. Preload 240 frames
   useEffect(() => {
     const images: HTMLImageElement[] = [];
     let loadedCount = 0;
@@ -66,7 +93,7 @@ export function App() {
     imagesRef.current = images;
   }, []);
 
-  // Scroll canvas frame renderer
+  // 3. Smooth Frame Scrubbing Physics Loop (Damped Momentum)
   useEffect(() => {
     const handleScroll = () => {
       if (!sequenceContainerRef.current) return;
@@ -75,18 +102,38 @@ export function App() {
       if (containerHeight <= 0) return;
 
       const scrollProgress = Math.min(Math.max(-rect.top / containerHeight, 0), 1);
-      const frameIndex = Math.min(
+      targetFrameRef.current = Math.min(
         Math.floor(scrollProgress * (TOTAL_FRAMES - 1)),
         TOTAL_FRAMES - 1
       );
+    };
 
-      setCurrentFrame(frameIndex);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    let frameAnimId: number;
+    const renderFramePhysics = () => {
+      // Lerp frame number with smooth mechanical deceleration
+      const frameEase = 0.085;
+      const diff = targetFrameRef.current - renderedFrameRef.current;
+      
+      if (Math.abs(diff) > 0.01) {
+        renderedFrameRef.current += diff * frameEase;
+      } else {
+        renderedFrameRef.current = targetFrameRef.current;
+      }
+
+      const activeFrameIndex = Math.min(
+        Math.max(Math.round(renderedFrameRef.current), 0),
+        TOTAL_FRAMES - 1
+      );
+
+      setCurrentFrame(activeFrameIndex);
 
       const canvas = canvasRef.current;
-      if (canvas && imagesRef.current[frameIndex]?.complete) {
+      if (canvas && imagesRef.current[activeFrameIndex]?.complete) {
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          const img = imagesRef.current[frameIndex];
+          const img = imagesRef.current[activeFrameIndex];
           ctx.clearRect(0, 0, canvas.width, canvas.height);
 
           const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
@@ -95,12 +142,35 @@ export function App() {
           ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
         }
       }
-    };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+      frameAnimId = requestAnimationFrame(renderFramePhysics);
+    };
+    frameAnimId = requestAnimationFrame(renderFramePhysics);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      cancelAnimationFrame(frameAnimId);
+    };
   }, [imagesLoaded]);
+
+  // 4. Scroll Reveal Intersection Observer (Text animates into view on scroll)
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('reveal-active');
+          }
+        });
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -50px 0px' }
+    );
+
+    const elements = document.querySelectorAll('.reveal-init');
+    elements.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
 
   const totalCalls = eventsList.length;
   const blockedCalls = eventsList.filter(e => e.final.decision === 'deny').length;
@@ -220,11 +290,11 @@ export function App() {
   return (
     <div className="min-h-screen bg-black text-white relative bg-subtle-grid selection:bg-white selection:text-black">
       
-      {/* High-Contrast Interactive Cursor Spotlight */}
+      {/* Physics-Damped Trailing Cursor Spotlight */}
       <div 
-        className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-150"
+        className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-300"
         style={{
-          background: `radial-gradient(550px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255, 255, 255, 0.07), transparent 80%)`
+          background: `radial-gradient(600px circle at ${spotlightPos.x}px ${spotlightPos.y}px, rgba(255, 255, 255, 0.09), transparent 80%)`
         }}
       />
 
@@ -263,24 +333,24 @@ export function App() {
         </div>
       </header>
 
-      {/* HERO SECTION: Editorial High-Contrast Typography */}
+      {/* HERO SECTION: Editorial High-Contrast Typography (With Scroll Reveal) */}
       <section className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-24 text-center">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/20 bg-white/5 font-mono text-xs text-white/70 mb-8 backdrop-blur-md">
+        <div className="reveal-init inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/20 bg-white/5 font-mono text-xs text-white/70 mb-8 backdrop-blur-md">
           <span>ZERO-TRUST GATEWAY FOR AGENTIC AI</span>
         </div>
 
-        <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight leading-[1.05] text-white mb-8">
+        <h1 className="reveal-init text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight leading-[1.05] text-white mb-8">
           The <span className="font-editorial font-normal">Seatbelt</span> for{' '}
           <span className="text-white">AI Agents</span> touching{' '}
           <span className="clean-underline">Real Tools</span>.
         </h1>
 
-        <p className="max-w-2xl mx-auto text-base sm:text-lg text-white/60 leading-relaxed font-normal mb-10">
+        <p className="reveal-init max-w-2xl mx-auto text-base sm:text-lg text-white/60 leading-relaxed font-normal mb-10">
           When AI coding agents read public pull requests or issues, hidden text can hijack them.{' '}
           <strong className="text-white font-medium">ZEM mediates every tool call:</strong> deterministic code guards block attacks in <span className="font-mono text-white font-semibold">&lt;4ms</span>, while <span className="font-mono text-white font-semibold">NVIDIA Nemotron</span> and <span className="font-mono text-white font-semibold">Tavily</span> judge the gray zone.
         </p>
 
-        <div className="flex flex-wrap items-center justify-center gap-4 font-mono text-xs">
+        <div className="reveal-init flex flex-wrap items-center justify-center gap-4 font-mono text-xs">
           <a
             href="#3d-architecture"
             className="flex items-center gap-2 px-6 py-3.5 rounded border border-white bg-white text-black font-bold uppercase tracking-wider transition hover:bg-white/90 shadow-[0_0_25px_rgba(255,255,255,0.2)]"
@@ -324,7 +394,7 @@ export function App() {
               </div>
             )}
 
-            {/* High-DPI Canvas */}
+            {/* High-DPI Canvas with Momentum Rendering */}
             <canvas
               ref={canvasRef}
               width={1920}
@@ -332,8 +402,8 @@ export function App() {
               className="w-full h-full object-contain filter drop-shadow-[0_20px_50px_rgba(0,0,0,0.9)]"
             />
 
-            {/* Glossy Mirror Scrollytelling Overlay */}
-            <div className="absolute bottom-10 left-6 sm:left-12 max-w-md p-6 rounded-xl mirror-panel transition-all duration-200">
+            {/* Glossy Mirror Scrollytelling Overlay (Animates with stage) */}
+            <div className="absolute bottom-10 left-6 sm:left-12 max-w-md p-6 rounded-xl mirror-panel transition-all duration-300">
               <div className="flex items-center justify-between font-mono text-xs mb-2">
                 <span className="px-2 py-0.5 rounded border border-white/20 bg-white/5 text-[10px] font-bold text-white tracking-wider">
                   {stage.stage}
@@ -349,7 +419,7 @@ export function App() {
               </p>
 
               <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between font-mono text-[10px] text-white/50">
-                <span>SCROLL POSITION</span>
+                <span>INERTIA SCRUB</span>
                 <span>FRAME {currentFrame + 1} / {TOTAL_FRAMES}</span>
               </div>
             </div>
@@ -366,10 +436,10 @@ export function App() {
         </div>
       </section>
 
-      {/* FULL-WIDTH MONOCHROME COCKPIT CONSOLE SECTION */}
+      {/* FULL-WIDTH MONOCHROME COCKPIT CONSOLE SECTION (With Scroll Reveals) */}
       <section id="security-cockpit" className="relative z-10 max-w-7xl mx-auto px-6 py-24">
         
-        <div className="mb-8">
+        <div className="reveal-init mb-8">
           <div className="font-mono text-xs text-white/50 uppercase mb-2">
             02. Live Security Telemetry & Inspection
           </div>
@@ -382,7 +452,7 @@ export function App() {
         </div>
 
         {/* Top Metric Strip */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 rounded-xl mb-6 mirror-panel font-mono">
+        <div className="reveal-init grid grid-cols-2 md:grid-cols-4 gap-4 p-5 rounded-xl mb-6 mirror-panel font-mono">
           <div>
             <div className="text-white/40 text-[10px]">TOTAL INTERCEPTS</div>
             <div className="text-2xl font-bold text-white mt-1">{totalCalls}</div>
@@ -409,7 +479,7 @@ export function App() {
         </div>
 
         {/* Main Grid: Stream + Deep Inspector */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="reveal-init grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
           {/* Table (7 cols) */}
           <div className="lg:col-span-7 rounded-xl overflow-hidden mirror-panel">
@@ -584,7 +654,7 @@ export function App() {
         </div>
 
         {/* ATTACK WORKBENCH (Section 03) */}
-        <div id="simulator" className="mt-12 p-8 rounded-xl mirror-panel font-mono">
+        <div id="simulator" className="reveal-init mt-12 p-8 rounded-xl mirror-panel font-mono">
           <div className="max-w-2xl">
             <div className="text-xs font-mono text-white/50 uppercase mb-2 flex items-center gap-1.5">
               <Play className="w-3.5 h-3.5 text-white" />

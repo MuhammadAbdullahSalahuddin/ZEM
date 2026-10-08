@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import Lenis from 'lenis';
 import fakeEventsData from './fake_events.json';
 import { AuditEvent } from './types';
+import { TiltCard } from './components/TiltCard';
 import { 
   Terminal, 
   Play, 
@@ -45,15 +46,15 @@ export function App() {
   const renderedFrameRef = useRef(0);
   const lenisRef = useRef<Lenis | null>(null);
 
-  // 1. Lenis Smooth Scroll Engine Initialization (Weighted Inertia)
+  // 1. Lenis Smooth Scroll Engine
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.5, // Silky smooth deceleration
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Exponential smooth decay
+      duration: 1.5,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
-      wheelMultiplier: 0.9, // Gentle wheel movement
+      wheelMultiplier: 0.9,
       touchMultiplier: 1.5,
     });
     lenisRef.current = lenis;
@@ -64,7 +65,6 @@ export function App() {
     }
     const rafId = requestAnimationFrame(raf);
 
-    // Synchronize 3D frame target with Lenis scroll updates
     lenis.on('scroll', () => {
       if (!sequenceContainerRef.current) return;
       const rect = sequenceContainerRef.current.getBoundingClientRect();
@@ -84,7 +84,7 @@ export function App() {
     };
   }, []);
 
-  // 2. Mouse Inertia Loop (Lerp with momentum)
+  // 2. Mouse Inertia Loop (Lerp spotlight)
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       mouseTargetRef.current = { x: e.clientX, y: e.clientY };
@@ -93,7 +93,7 @@ export function App() {
 
     let animId: number;
     const updateMousePhysics = () => {
-      const ease = 0.06; // Weighted inertia trailing
+      const ease = 0.06;
       mouseCurrentRef.current.x += (mouseTargetRef.current.x - mouseCurrentRef.current.x) * ease;
       mouseCurrentRef.current.y += (mouseTargetRef.current.y - mouseCurrentRef.current.y) * ease;
 
@@ -133,7 +133,7 @@ export function App() {
     imagesRef.current = images;
   }, []);
 
-  // 4. Smooth Frame Scrubbing Physics Loop (Tied to Lenis)
+  // 4. Smooth Frame Scrubbing Physics
   useEffect(() => {
     let frameAnimId: number;
     const renderFramePhysics = () => {
@@ -176,7 +176,7 @@ export function App() {
     };
   }, [imagesLoaded]);
 
-  // 5. Scroll Reveal Intersection Observer
+  // 5. Scroll Reveal Observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -356,7 +356,7 @@ export function App() {
         </div>
       </header>
 
-      {/* HERO SECTION: Editorial High-Contrast Typography */}
+      {/* HERO SECTION */}
       <section className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-24 text-center">
         <div className="reveal-init inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/20 bg-white/5 font-mono text-xs text-white/70 mb-8 backdrop-blur-md">
           <span>ZERO-TRUST GATEWAY FOR AGENTIC AI</span>
@@ -425,8 +425,11 @@ export function App() {
               className="w-full h-full object-contain filter drop-shadow-[0_20px_50px_rgba(0,0,0,0.9)]"
             />
 
-            {/* Glossy Mirror Scrollytelling Overlay */}
-            <div className="absolute bottom-10 left-6 sm:left-12 max-w-md p-6 rounded-xl mirror-panel transition-all duration-300">
+            {/* 3D Interactive Tilt Scrollytelling HUD */}
+            <TiltCard 
+              maxTilt={10}
+              className="absolute bottom-10 left-6 sm:left-12 max-w-md p-6 rounded-xl mirror-panel"
+            >
               <div className="flex items-center justify-between font-mono text-xs mb-2">
                 <span className="px-2 py-0.5 rounded border border-white/20 bg-white/5 text-[10px] font-bold text-white tracking-wider">
                   {stage.stage}
@@ -445,16 +448,19 @@ export function App() {
                 <span>INERTIA SCRUB</span>
                 <span>FRAME {currentFrame + 1} / {TOTAL_FRAMES}</span>
               </div>
-            </div>
+            </TiltCard>
 
-            {/* Right Telemetry Badge */}
-            <div className="hidden lg:flex absolute top-10 right-12 p-4 rounded-xl mirror-panel font-mono text-xs">
+            {/* 3D Interactive Right Telemetry Badge */}
+            <TiltCard 
+              maxTilt={8}
+              className="hidden lg:block absolute top-10 right-12 p-4 rounded-xl mirror-panel font-mono text-xs"
+            >
               <div className="space-y-2 text-white/80">
                 <div>DETERMINISTIC: <strong className="text-white">3.8 ms</strong></div>
                 <div>AI REASONER: <strong className="text-white">Nebius Nemotron</strong></div>
                 <div>INTEL RADAR: <strong className="text-white">Tavily Search</strong></div>
               </div>
-            </div>
+            </TiltCard>
           </div>
         </div>
       </section>
@@ -474,31 +480,31 @@ export function App() {
           </p>
         </div>
 
-        {/* Top Metric Strip */}
-        <div className="reveal-init grid grid-cols-2 md:grid-cols-4 gap-4 p-5 rounded-xl mb-6 mirror-panel font-mono">
-          <div>
+        {/* 3D Interactive Tilt Metric Grid (4 Cards that tilt in 3D) */}
+        <div className="reveal-init grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 font-mono">
+          <TiltCard maxTilt={12} className="p-5 rounded-xl mirror-panel">
             <div className="text-white/40 text-[10px]">TOTAL INTERCEPTS</div>
             <div className="text-2xl font-bold text-white mt-1">{totalCalls}</div>
             <div className="text-[10px] text-white/60 mt-0.5">100% inspected</div>
-          </div>
+          </TiltCard>
 
-          <div>
+          <TiltCard maxTilt={12} className="p-5 rounded-xl mirror-panel">
             <div className="text-white/40 text-[10px]">ATTACKS DROPPED</div>
             <div className="text-2xl font-bold text-white mt-1">{blockedCalls}</div>
             <div className="text-[10px] text-white/60 mt-0.5">Deterministic drop</div>
-          </div>
+          </TiltCard>
 
-          <div>
+          <TiltCard maxTilt={12} className="p-5 rounded-xl mirror-panel">
             <div className="text-white/40 text-[10px]">AI JUDGE CALLS</div>
             <div className="text-2xl font-bold text-white mt-1">{judgedCalls}</div>
             <div className="text-[10px] text-white/60 mt-0.5">Nebius Token Factory</div>
-          </div>
+          </TiltCard>
 
-          <div>
+          <TiltCard maxTilt={12} className="p-5 rounded-xl mirror-panel">
             <div className="text-white/40 text-[10px]">FAST OVERHEAD</div>
             <div className="text-2xl font-bold text-white mt-1">3.8 ms</div>
             <div className="text-[10px] text-white/60 mt-0.5">Zero model delay</div>
-          </div>
+          </TiltCard>
         </div>
 
         {/* Main Grid: Stream + Deep Inspector */}
@@ -599,8 +605,8 @@ export function App() {
             </div>
           </div>
 
-          {/* Deep Inspector (5 cols) */}
-          <div className="lg:col-span-5 p-5 rounded-xl mirror-panel font-mono text-xs space-y-4">
+          {/* 3D Interactive Deep Inspector Card */}
+          <TiltCard maxTilt={6} className="lg:col-span-5 p-5 rounded-xl mirror-panel font-mono text-xs space-y-4">
             {selectedEvent ? (
               <>
                 <div className="border-b border-white/10 pb-3 flex items-center justify-between">
@@ -673,11 +679,11 @@ export function App() {
                 )}
               </>
             ) : null}
-          </div>
+          </TiltCard>
         </div>
 
-        {/* ATTACK WORKBENCH (Section 03) */}
-        <div id="simulator" className="reveal-init mt-12 p-8 rounded-xl mirror-panel font-mono">
+        {/* 3D Interactive Attack Simulator Workbench Card */}
+        <TiltCard maxTilt={5} id="simulator" className="reveal-init mt-12 p-8 rounded-xl mirror-panel font-mono">
           <div className="max-w-2xl">
             <div className="text-xs font-mono text-white/50 uppercase mb-2 flex items-center gap-1.5">
               <Play className="w-3.5 h-3.5 text-white" />
@@ -759,7 +765,7 @@ export function App() {
               )}
             </div>
           </div>
-        </div>
+        </TiltCard>
       </section>
 
       {/* Retro Collapsible Stderr Stream Drawer */}

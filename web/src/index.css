@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .glass-dark {
+    background: rgba(10, 15, 13, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 255, 136, 0.12);
+  }
+
+  .glass-light {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  .glow-green {
+    box-shadow: 0 0 25px -5px rgba(0, 255, 136, 0.25);
+  }
+
+  .glow-red {
+    box-shadow: 0 0 25px -5px rgba(239, 68, 68, 0.3);
+  }
+
+  .bg-grid-dark {
+    background-size: 32px 32px;
+    background-image: 
+      linear-gradient(to right, rgba(0, 255, 136, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 255, 136, 0.04) 1px, transparent 1px);
+  }
+
+  .bg-grid-light {
+    background-size: 32px 32px;
+    background-image: 
+      linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.08); }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s infinite ease-in-out;
+}

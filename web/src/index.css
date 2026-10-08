@@ -23,6 +23,21 @@ html.lenis, html.lenis body {
   pointer-events: none;
 }
 
+/* Custom Sleek Monochrome Scrollbar for internal table */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
 @layer base {
   body {
     font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -55,17 +70,7 @@ html.lenis, html.lenis body {
     box-shadow: 
       inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
       0 20px 40px -15px rgba(0, 0, 0, 0.9);
-  }
-
-  .mirror-panel-hover {
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .mirror-panel-hover:hover {
-    border-color: rgba(255, 255, 255, 0.3);
-    box-shadow: 
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.35),
-      0 25px 50px -15px rgba(0, 0, 0, 0.95);
-    transform: translateY(-2px);
+    transform-style: preserve-3d;
   }
 
   .clean-underline {

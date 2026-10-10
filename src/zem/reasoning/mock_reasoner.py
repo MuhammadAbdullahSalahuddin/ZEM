@@ -4,6 +4,7 @@ Returns deterministic verdicts based on simple keyword matching so
 the test suite runs instantly without any network calls or API keys.
 This implements the Reasoner Protocol from zem.contracts.models.
 """
+
 from __future__ import annotations
 
 import time

@@ -4,6 +4,7 @@ Returns deterministic IntelResult objects based on simple keyword matching
 so the test suite runs instantly without any network calls or API keys.
 This implements the Enricher Protocol from zem.contracts.models.
 """
+
 from __future__ import annotations
 
 import time
@@ -61,4 +62,3 @@ class MockEnricher:
             cached=False,
             latency_ms=latency,
         )
-

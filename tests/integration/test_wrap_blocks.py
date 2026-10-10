@@ -70,8 +70,17 @@ def test_attack_blocked_benign_allowed():
         ok = _call(p, 4, "echo", {"text": "hello zem"})
         assert not ok["result"].get("isError")
         assert "hello zem" in json.dumps(ok)
+
     finally:
         p.stdin.close()
         p.wait(timeout=15)
     err = p.stderr.read()
     assert "deny tool=read_file" in err and "allow tool=echo" in err
+    out = subprocess.run(
+        [sys.executable, "-c", "from zem.cli.main import app; app()", "log"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    assert "deny" in out and "read_file" in out and "allow" in out
+    assert AWS not in out

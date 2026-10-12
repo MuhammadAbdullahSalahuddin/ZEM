@@ -1,0 +1,12 @@
+services:
+  zem:
+    build: .
+    volumes:
+      - zem-data:/data
+    # R1-K1 (Karachi): once `zem serve` and the API exist, change the CMD to
+    # `zem serve --host 0.0.0.0 --port 8000` and uncomment:
+    # ports:
+    #   - "8000:8000"
+
+volumes:
+  zem-data:

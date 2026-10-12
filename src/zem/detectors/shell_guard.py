@@ -5,6 +5,7 @@ from collections.abc import Iterator
 from typing import Any
 
 from zem.contracts.models import Severity, Signal, ToolCallContext
+from zem.detectors._util import clean
 
 SHELL_KEYS = {"cmd", "command", "script", "shell", "bash", "code", "args", "argv"}
 SHELL_TOOL = re.compile(r"shell|exec|bash|terminal|command|run|\bsh\b")
@@ -87,8 +88,9 @@ def _texts(value: Any, key: str = "") -> Iterator[tuple[str, str]]:
             for v in value:
                 yield from _texts(v, key)
 
-
+MAX_COMMAND_CHARS = 4096
 def _normalize(s: str) -> str:
+    s= clean(s) # NFKC + strip invinsible characters
     s = re.sub(r"[\\'\"]", "", s)  # c'u'rl and cu\rl become curl
     return re.sub(r"\s+", " ", s).strip()
 
@@ -101,6 +103,12 @@ class ShellGuard:
         signals: list[Signal] = []
         for key, raw in _texts(ctx.arguments):
             if not (scan_all or key in SHELL_KEYS):
+                continue
+            if len(raw) > MAX_COMMAND_CHARS:
+                signals.append(Signal(
+                    detector=self.name, code="oversized_command", weight=1.0,
+                    severity=Severity.HIGH, evidence=f"{key}: {len(raw)} chars",
+                    hard_deny=True))
                 continue
             text = _normalize(raw)
             for code, rx, weight, sev, hard in COMPILED:

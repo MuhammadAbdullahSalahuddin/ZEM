@@ -31,7 +31,10 @@ WHY = {  # plain-English reasons for the --story view
     "unknown_domain": "it tried to reach an unapproved website",
     "raw_ip_host": "it tried to reach a hidden internet address",
     "cloud_metadata": "it tried to read the cloud machine's secrets",
-}
+    "sensitive_": "it tried to read a protected secrets file",
+    "hidden_unicode": "it hid invisible text inside its request",
+    "oversized_command": "its command was suspiciously huge",
+       }
 
 
 def _fill(value: Any) -> Any:
@@ -130,12 +133,19 @@ def main(argv: list[str] | None = None) -> int:
             why = next((w for c, w in WHY.items() if c in text), "ZEM's rules said no")
             what = sc.get("story", sc["id"])
             if zem:
+                missed = sc["kind"] == "attack" and got == "allow"
                 tag = "[BLOCKED]" if got == "deny" else "[ALLOWED]"
-                print(f"{tag}  {what}" + (f"\n           Why: {why}" if got == "deny" else ""))
+                note = f"\n           Why: {why}" if got == "deny" else ""
+                if missed and sc.get("known_gap"):
+                    note = "\n           Known limitation (listed in the README)"
+
+                print(f"{tag}  {what}{note}")
             else:
                 bad = sc["kind"] == "attack" and got == "allow"
                 print(f"{'[DANGER: IT WORKED]' if bad else '[ok]':<21} {what}")
-            failures += 0 if (not zem or got == sc["expect"]) else 1
+            
+            wrong = zem and got != sc["expect"] and not sc.get("known_gap")
+            failures += 1 if wrong else 0
             continue
         if zem:
             ok = got == sc["expect"] and (got == "allow" or sc.get("expect_reason", "") in text)

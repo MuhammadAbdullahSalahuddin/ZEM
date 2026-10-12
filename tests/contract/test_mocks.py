@@ -8,6 +8,7 @@ These verify that:
 
 No API keys, no network, runs in milliseconds.
 """
+
 from __future__ import annotations
 
 import inspect

@@ -14,6 +14,7 @@ from zem.detectors.path_guard import PathGuard
 from zem.detectors.secret_guard import SecretGuard
 from zem.detectors.shell_guard import ShellGuard
 from zem.detectors.tool_guard import ToolGuard
+from zem.detectors.unicode_guard import UnicodeGuard
 from zem.pipeline.orchestrator import Pipeline, make_interceptor
 from zem.policy.loader import PolicyError, load_policy
 from zem.protocol.stdio_proxy import run_proxy
@@ -47,6 +48,7 @@ def wrap(
             SecretGuard(),
             ShellGuard(),
             NetGuard(pol.net_allowlist),
+            UnicodeGuard(),
             ToolGuard(pol.tools.allow, pol.tools.deny),
         ],
         hard_codes=pol.hard_deny_codes,

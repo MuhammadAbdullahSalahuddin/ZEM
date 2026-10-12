@@ -41,6 +41,13 @@ def test_bad_paths_denied(bad):
     assert denied({"path": bad})
 
 
+def test_sensitive_files_denied_even_inside_workspace(tmp_path):
+    g = PathGuard([str(tmp_path)])
+    for p in (".env", ".ENV", "config/.env.local", ".ssh/id_rsa", "file:///etc/passwd"):
+        assert any(s.hard_deny for s in g.inspect(ctx({"path": p}))), p
+    assert not any(s.hard_deny for s in g.inspect(ctx({"path": ".env.example"})))
+
+
 @pytest.mark.parametrize(
     "good",
     [

@@ -28,6 +28,87 @@ export function App() {
   const [terminalOpen, setTerminalOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // Live Backend API & SSE Telemetry State
+  const [backendStatus, setBackendStatus] = useState<'connected' | 'connecting' | 'demo'>('connecting');
+  const [liveTicker, setLiveTicker] = useState<string | null>(null);
+
+  // 0. Live Backend Telemetry & SSE Stream Connection
+  useEffect(() => {
+    let isMounted = true;
+    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+    // A. Fetch recent decisions on mount
+    fetch(`${API_BASE}/api/decisions?limit=50`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return (await res.json()) as AuditEvent[];
+      })
+      .then((data) => {
+        if (isMounted && Array.isArray(data) && data.length > 0) {
+          setEventsList(data);
+          setSelectedEvent(data[0]);
+          setBackendStatus('connected');
+        }
+      })
+      .catch((err) => {
+        console.warn('Backend unavailable, running in Standalone Demo Mode:', err);
+        if (isMounted) {
+          setBackendStatus('demo');
+        }
+      });
+
+    // B. Connect to Server-Sent Events (SSE) live stream
+    let eventSource: EventSource | null = null;
+    try {
+      eventSource = new EventSource(`${API_BASE}/api/stream`);
+
+      eventSource.addEventListener('connected', (e) => {
+        if (!isMounted) return;
+        setBackendStatus('connected');
+        try {
+          const info = JSON.parse(e.data);
+          setLiveTicker(`Gateway Synced (Seq #${info.seq})`);
+        } catch {
+          setLiveTicker('Gateway Stream Connected');
+        }
+      });
+
+      const handleIncomingEvent = (rawPayload: string) => {
+        if (!isMounted) return;
+        try {
+          const newEv = JSON.parse(rawPayload) as AuditEvent;
+          if (!newEv || !newEv.call_id) return;
+          setEventsList((prev) => {
+            if (prev.some((item) => item.call_id === newEv.call_id)) return prev;
+            return [newEv, ...prev];
+          });
+          setBackendStatus('connected');
+          setLiveTicker(`LIVE: ${newEv.context.tool} [${newEv.final.decision.toUpperCase()}]`);
+        } catch (parseErr) {
+          console.warn('Failed to parse SSE event:', parseErr);
+        }
+      };
+
+      eventSource.addEventListener('decision', (e) => handleIncomingEvent(e.data));
+      eventSource.onmessage = (e) => handleIncomingEvent(e.data);
+
+      eventSource.onerror = () => {
+        if (!isMounted) return;
+        setBackendStatus('demo');
+      };
+    } catch (sseErr) {
+      console.warn('Could not initialize SSE connection:', sseErr);
+      if (isMounted) setBackendStatus('demo');
+    }
+
+    return () => {
+      isMounted = false;
+      if (eventSource) {
+        eventSource.close();
+      }
+    };
+  }, []);
+
   // Simulator state
   const [simTool, setSimTool] = useState('read_file');
   const [simArgs, setSimArgs] = useState('{"path": "../../.env"}');
@@ -355,7 +436,29 @@ export function App() {
           </div>
 
           <div className="flex items-center gap-3 font-mono text-xs">
-            <div className="flex items-center gap-2 px-3 py-1 rounded border border-white/15 bg-white/5 text-white/80">
+            {liveTicker && (
+              <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded bg-white/5 border border-white/10 text-white/70 animate-fade-in text-[11px]">
+                <span className="text-white/40">⚡</span>
+                <span className="truncate max-w-[200px]">{liveTicker}</span>
+              </div>
+            )}
+            {backendStatus === 'connected' ? (
+              <div className="flex items-center gap-2 px-3 py-1 rounded border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 font-bold">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>LIVE GATEWAY (SSE)</span>
+              </div>
+            ) : backendStatus === 'connecting' ? (
+              <div className="flex items-center gap-2 px-3 py-1 rounded border border-amber-500/30 bg-amber-500/10 text-amber-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-ping"></span>
+                <span>CONNECTING...</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 px-3 py-1 rounded border border-white/15 bg-white/5 text-white/70" title="Start FastAPI backend (uvicorn zem.api.app:app) for live gateway telemetry">
+                <span className="h-1.5 w-1.5 rounded-full bg-white/40"></span>
+                <span>DEMO MODE (OFFLINE)</span>
+              </div>
+            )}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded border border-white/15 bg-white/5 text-white/80">
               <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse"></span>
               <span>NEBIUS ENGINE READY</span>
             </div>
@@ -373,7 +476,9 @@ export function App() {
               <Shield className="w-3.5 h-3.5 text-white" />
               <span>SIEM COMMAND &amp; CONTROL CONSOLE</span>
               <span className="text-white/30">|</span>
-              <span className="text-white">FAIL-CLOSED</span>
+              <span className={backendStatus === 'connected' ? 'text-emerald-400 font-bold' : 'text-white'}>
+                {backendStatus === 'connected' ? 'LIVE STREAM ACTIVE' : 'FAIL-CLOSED'}
+              </span>
             </div>
             <h1 className="text-3xl sm:text-5xl font-black font-mono tracking-tight text-white">
               MCP <span className="clean-underline">Security Cockpit</span>

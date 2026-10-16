@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+from collections import deque
 from collections.abc import Iterable, Sequence
 from typing import Any
 from uuid import uuid4
@@ -11,11 +12,14 @@ from zem.contracts.models import (
     Decision,
     Detector,
     FinalDecision,
+    Reasoner,
     Severity,
     Signal,
     ToolCallContext,
 )
+from zem.pipeline.judge_stage import JudgeBudget, decide_gray, summarize_call
 from zem.pipeline.normalizer import MalformedCallError, build_context
+from zem.policy.loader import Policy
 from zem.protocol import jsonrpc
 from zem.protocol.stdio_proxy import Interceptor, log
 
@@ -50,15 +54,23 @@ class Pipeline:
             return FinalDecision(decision=Decision.DENY, risk=risk, reasons=reasons)
         return FinalDecision(decision=Decision.ALLOW, risk=risk)
 
-
 def make_interceptor(
     pipeline: Pipeline,
     *,
     server: str,
     session_id: str | None = None,
     audit: AuditSink | None = None,
+    reasoner: Reasoner | None = None,
+    policy: Policy | None = None,
 ) -> Interceptor:
     sid = session_id or uuid4().hex
+    r2 = policy is not None and policy.judge.enabled
+    budget = (
+        JudgeBudget(policy.budgets.max_judge_per_session, policy.budgets.max_judge_global)
+        if policy is not None
+        else JudgeBudget(0, 0)
+    )
+    history: deque[dict[str, Any]] = deque(maxlen=5)
 
     async def interceptor(msg: dict[str, Any]) -> dict[str, Any] | None:
         t0 = time.perf_counter()
@@ -68,7 +80,17 @@ def make_interceptor(
             log(f"deny malformed tools/call: {exc}")
             return jsonrpc.blocked_response(msg.get("id"), f"malformed tools/call ({exc})")
 
-        final = pipeline.evaluate(ctx)
+        final = pipeline.evaluate(ctx)  # R1: detectors + hard denies
+        detector_ms = int((time.perf_counter() - t0) * 1000)
+
+        verdict = None
+        judge_ms = 0
+        if r2 and policy is not None and final.decision is Decision.ALLOW:
+            final, verdict, judge_ms = await decide_gray(
+                ctx, policy=policy, reasoner=reasoner, budget=budget, history=history
+            )
+        history.append(summarize_call(ctx, final))
+
         micros = int((time.perf_counter() - t0) * 1_000_000)
         log(
             f"{final.decision.value} tool={ctx.tool} risk={final.risk:.2f} "
@@ -83,13 +105,14 @@ def make_interceptor(
                         session_id=sid,
                         call_id=ctx.call_id,
                         context=ctx,
+                        judge=verdict,
                         final=final,
-                        latency_breakdown_ms={"pipeline": micros // 1000},
+                        latency_breakdown_ms={"pipeline": detector_ms, "judge": judge_ms},
                     )
                 )
-            except Exception as exc:  # noqa: BLE001 (a broken log must not break the decision)
+            except Exception as exc:  # noqa: BLE001
                 log(f"audit write failed: {type(exc).__name__}")
-        if final.decision is Decision.DENY:
+        if final.decision is not Decision.ALLOW:  # was "is DENY": other decisions leaked through
             return jsonrpc.blocked_response(msg.get("id"), "; ".join(final.reasons))
         return None
 

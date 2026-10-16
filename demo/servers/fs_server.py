@@ -38,6 +38,12 @@ def read_file(path: str) -> str:
         return f"error: no such file: {full}"
     return FILES[full]
 
+@mcp.tool()
+def send_email(to: str, body: str) -> str:
+    """Send an email. SIMULATED: nothing is sent."""
+    return f"[SIMULATION ONLY] email to {to}, {len(body)} chars"
+
+
 
 @mcp.tool()
 def list_dir(path: str = ".") -> str:

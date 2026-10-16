@@ -10,4 +10,7 @@ net_allowlist:
   - pypi.org
   - files.pythonhosted.org
   - registry.npmjs.org
-hard_deny_codes: []   # e.g. [data_upload] to block every curl POST
+hard_deny_codes: [] # e.g. [data_upload] to block every curl POST
+judge:
+  enabled: true
+known_packages: [pytest, ruff, mypy]

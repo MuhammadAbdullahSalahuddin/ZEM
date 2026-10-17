@@ -121,7 +121,7 @@
       "risk_tags": ["typosquat", "untrusted_source"],
       "needs_intel": true,
       "intel_query": "requests-security-patch malicious pypi package",
-      "model_id": "nvidia/nemotron-4-340b-instruct",
+      "model_id": "nvidia/Nemotron-3_5-Lightning",
       "latency_ms": 480,
       "tokens_in": 310,
       "tokens_out": 42
@@ -162,6 +162,55 @@
       "detectors": 2,
       "policy": 1,
       "total": 4
+    }
+  },
+  {
+    "seq": 6,
+    "ts": "2026-10-08T06:28:15Z",
+    "session_id": "sess-alpha-003",
+    "call_id": "call-106",
+    "context": {
+      "server": "network",
+      "tool": "send_email",
+      "arguments": {
+        "to": "external-auditor@consulting-firm.com",
+        "subject": "System crash logs & memory dump",
+        "attachments": ["crash_dump.tar.gz"]
+      },
+      "signals": [
+        {
+          "detector": "data_guard",
+          "code": "external_data_egress",
+          "weight": 0.65,
+          "severity": "high",
+          "evidence": "Outbound email contains memory crash dump with potential secret credentials",
+          "hard_deny": false
+        }
+      ]
+    },
+    "judge": {
+      "verdict": "escalate",
+      "confidence": 0.89,
+      "reason": "Outbound email transmits raw memory dump. Potential API key or session token leakage. Requires human SOC confirmation.",
+      "risk_tags": ["data_exfiltration", "credential_leak", "untrusted_recipient"],
+      "needs_intel": false,
+      "intel_query": null,
+      "model_id": "nvidia/nemotron-3-super-120b-a12b",
+      "latency_ms": 612,
+      "tokens_in": 385,
+      "tokens_out": 58
+    },
+    "final": {
+      "decision": "require_approval",
+      "risk": 0.72,
+      "reasons": ["Deep Judge (Nemotron-3-Super) escalated external memory dump dispatch for human approval"]
+    },
+    "latency_breakdown_ms": {
+      "normalize": 1,
+      "detectors": 5,
+      "judge": 612,
+      "policy": 2,
+      "total": 620
     }
   }
 ]

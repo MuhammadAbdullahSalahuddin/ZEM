@@ -34,27 +34,27 @@ export function TiltCard({
         const centerX = rect.width / 2;
         const centerY = rect.height / 2;
 
-        const rotX = ((y - centerY) / centerY) * -maxTilt;
-        const rotY = ((x - centerX) / centerX) * maxTilt;
-        const shadowX = -rotY * 1.5;
-        const shadowY = rotX * 1.5;
+        // Ultra-subtle micro-depth (capped at 0.8 deg) with zero scale jump so text stays razor sharp
+        const dampenedTilt = Math.min(maxTilt * 0.08, 0.8);
+        const rotX = ((y - centerY) / centerY) * -dampenedTilt;
+        const rotY = ((x - centerX) / centerX) * dampenedTilt;
 
-        card.style.transform = `rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) scale3d(1.015, 1.015, 1.015)`;
-        card.style.boxShadow = `${shadowX.toFixed(1)}px ${shadowY.toFixed(1)}px 35px rgba(0, 0, 0, 0.9), 0 0 2px 1px rgba(255, 255, 255, 0.2)`;
-        card.style.transition = 'transform 0.05s ease-out, box-shadow 0.05s ease-out';
+        card.style.transform = `rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg)`;
+        card.style.borderColor = 'rgba(255, 255, 255, 0.28)';
+        card.style.transition = 'transform 0.12s ease-out, border-color 0.2s ease-out';
 
         if (glare) {
-          glare.style.opacity = '0.22';
-          glare.style.background = `radial-gradient(circle 420px at ${(x / rect.width) * 100}% ${(y / rect.height) * 100}%, rgba(255, 255, 255, 0.35), transparent 70%)`;
+          glare.style.opacity = '0.07';
+          glare.style.background = `radial-gradient(circle 480px at ${(x / rect.width) * 100}% ${(y / rect.height) * 100}%, rgba(56, 189, 248, 0.22), rgba(255, 255, 255, 0.08) 40%, transparent 75%)`;
         }
       });
     };
 
     const handleMouseLeave = () => {
       cancelAnimationFrame(rafId);
-      card.style.transform = 'rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
-      card.style.boxShadow = '0 20px 40px -15px rgba(0, 0, 0, 0.9), 0 0 1px 1px rgba(255, 255, 255, 0.1)';
-      card.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+      card.style.transform = 'rotateX(0deg) rotateY(0deg)';
+      card.style.borderColor = '';
+      card.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease-out';
       if (glare) {
         glare.style.opacity = '0';
       }
@@ -70,10 +70,12 @@ export function TiltCard({
     };
   }, [maxTilt]);
 
+  const wantsFullHeight = className.includes('h-full') || className.includes('flex-1');
+
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full"
+      className={`relative w-full ${wantsFullHeight ? 'h-full flex-1 flex flex-col' : ''}`}
       style={{
         perspective: '1000px',
         ...style,
@@ -82,7 +84,7 @@ export function TiltCard({
     >
       <div
         ref={cardRef}
-        className={`w-full h-full relative ${className}`}
+        className={`w-full relative ${className}`}
         style={{
           transform: 'rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
           boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.9), 0 0 1px 1px rgba(255, 255, 255, 0.1)',

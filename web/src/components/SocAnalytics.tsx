@@ -55,35 +55,35 @@ export function SocAnalytics({
   ];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 font-mono">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 font-mono">
       
       {/* 1. 3D TILT BOX: CLEAN CRISP 2D DONUT CHART */}
       <div className="lg:col-span-6">
-        <TiltCard maxTilt={14} className="p-6 rounded-2xl mirror-panel h-full flex flex-col justify-between">
+        <TiltCard maxTilt={6} className="p-7 sm:p-8 rounded-2xl mirror-panel h-full flex flex-col justify-between">
           
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-white/10 pb-3.5">
-            <div className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded-lg bg-white/10 border border-white/15 text-white">
-                <PieIcon className="w-4 h-4" />
+          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div className="flex items-center gap-3.5">
+              <div className="p-2.5 rounded-xl bg-white/10 border border-white/15 text-white">
+                <PieIcon className="w-6 h-6" />
               </div>
               <div>
-                <span className="font-extrabold text-white tracking-wider text-xs sm:text-sm">THREAT DISTRIBUTION</span>
-                <p className="text-[10px] text-white/50">Zero-Trust Realtime Policy Triage</p>
+                <span className="font-extrabold text-white tracking-wider text-base sm:text-lg">THREAT DISTRIBUTION</span>
+                <p className="text-xs sm:text-sm text-zinc-300 mt-0.5">Zero-Trust Realtime Policy Triage</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 text-[10px] text-white/70 px-2.5 py-1 rounded-md border border-white/15 bg-white/5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="font-semibold text-white/80">LIVE FEED</span>
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-emerald-400 px-3.5 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 font-bold">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>LIVE FEED</span>
             </div>
           </div>
 
           {/* 2D Donut & Legend */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-8 my-6">
+          <div className="flex flex-col sm:flex-row items-center justify-around gap-8 my-6">
             
             {/* Plain 2D Donut SVG */}
-            <div className="relative w-56 h-56 sm:w-64 sm:h-64 flex items-center justify-center select-none flex-shrink-0">
+            <div className="relative w-60 h-60 sm:w-72 sm:h-72 flex items-center justify-center select-none flex-shrink-0">
               <svg 
                 className="w-full h-full -rotate-90 transform overflow-visible" 
                 viewBox="0 0 140 140"
@@ -152,119 +152,119 @@ export function SocAnalytics({
 
               {/* Plain 2D Center Readout */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+                <span className="text-5xl sm:text-6xl font-black font-mono tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
                   {displayTotal < 10 ? `0${displayTotal}` : displayTotal}
                 </span>
-                <span className="text-[10px] sm:text-xs text-white/70 uppercase tracking-widest font-bold mt-0.5">
+                <span className="text-xs sm:text-sm text-zinc-200 uppercase tracking-widest font-extrabold mt-1">
                   {hoveredSlice ? hoveredSlice.toUpperCase() : 'INTERCEPTS'}
                 </span>
               </div>
             </div>
 
             {/* Clean Legend */}
-            <div className="space-y-3 w-full sm:w-auto flex-1 max-w-xs">
+            <div className="space-y-4 w-full flex-1">
               {/* Red */}
               <div 
-                className={`p-3 rounded-xl border transition-all duration-200 cursor-pointer ${
+                className={`p-4 rounded-xl border transition-all duration-200 cursor-pointer ${
                   hoveredSlice === 'Deterministic' 
-                    ? 'bg-red-500/15 border-red-400 text-white shadow-[0_0_15px_rgba(239,68,68,0.25)]' 
-                    : 'bg-white/[0.03] border-white/10 hover:border-red-400/50 text-white/90'
+                    ? 'bg-red-500/20 border-red-400 text-white shadow-[0_0_20px_rgba(239,68,68,0.3)]' 
+                    : 'bg-white/[0.04] border-white/10 hover:border-red-400/50 text-white'
                 }`}
                 onMouseEnter={() => setHoveredSlice('Deterministic')}
                 onMouseLeave={() => setHoveredSlice(null)}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-3.5 h-3.5 rounded-sm bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-                    <span className="font-bold text-xs sm:text-sm text-white">Deterministic Drop</span>
+                  <div className="flex items-center gap-3">
+                    <span className="w-4 h-4 rounded bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.9)]" />
+                    <span className="font-bold text-base sm:text-lg text-white">Deterministic Drop</span>
                   </div>
-                  <span className="font-extrabold font-mono text-sm sm:text-base text-red-400">
+                  <span className="font-black font-mono text-lg sm:text-xl text-red-400">
                     {(pctDet * 100).toFixed(0)}%
                   </span>
                 </div>
-                <p className="text-[10px] text-white/50 mt-1 pl-6">Zero-tolerance AST regex hard kill</p>
+                <p className="text-xs sm:text-sm text-zinc-300 font-sans mt-1.5 pl-7">Zero-tolerance AST regex hard kill</p>
               </div>
 
               {/* Cyan */}
               <div 
-                className={`p-3 rounded-xl border transition-all duration-200 cursor-pointer ${
+                className={`p-4 rounded-xl border transition-all duration-200 cursor-pointer ${
                   hoveredSlice === 'Nemotron' 
-                    ? 'bg-cyan-500/15 border-cyan-400 text-white shadow-[0_0_15px_rgba(6,182,212,0.25)]' 
-                    : 'bg-white/[0.03] border-white/10 hover:border-cyan-400/50 text-white/90'
+                    ? 'bg-cyan-500/20 border-cyan-400 text-white shadow-[0_0_20px_rgba(6,182,212,0.3)]' 
+                    : 'bg-white/[0.04] border-white/10 hover:border-cyan-400/50 text-white'
                 }`}
                 onMouseEnter={() => setHoveredSlice('Nemotron')}
                 onMouseLeave={() => setHoveredSlice(null)}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-3.5 h-3.5 rounded-sm bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
-                    <span className="font-bold text-xs sm:text-sm text-white">Nemotron AI Judge</span>
+                  <div className="flex items-center gap-3">
+                    <span className="w-4 h-4 rounded bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.9)]" />
+                    <span className="font-bold text-base sm:text-lg text-white">Nemotron AI Judge</span>
                   </div>
-                  <span className="font-extrabold font-mono text-sm sm:text-base text-cyan-300">
+                  <span className="font-black font-mono text-lg sm:text-xl text-cyan-300">
                     {(pctAi * 100).toFixed(0)}%
                   </span>
                 </div>
-                <p className="text-[10px] text-white/50 mt-1 pl-6">Nebius LLM semantic reasoning</p>
+                <p className="text-xs sm:text-sm text-zinc-300 font-sans mt-1.5 pl-7">Nebius LLM semantic reasoning</p>
               </div>
 
               {/* Green */}
               <div 
-                className={`p-3 rounded-xl border transition-all duration-200 cursor-pointer ${
+                className={`p-4 rounded-xl border transition-all duration-200 cursor-pointer ${
                   hoveredSlice === 'Allowed' 
-                    ? 'bg-emerald-500/15 border-emerald-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.25)]' 
-                    : 'bg-white/[0.03] border-white/10 hover:border-emerald-400/50 text-white/90'
+                    ? 'bg-emerald-500/20 border-emerald-400 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)]' 
+                    : 'bg-white/[0.04] border-white/10 hover:border-emerald-400/50 text-white'
                 }`}
                 onMouseEnter={() => setHoveredSlice('Allowed')}
                 onMouseLeave={() => setHoveredSlice(null)}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="w-3.5 h-3.5 rounded-sm bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-                    <span className="font-bold text-xs sm:text-sm text-white">Verified Safe Pass</span>
+                  <div className="flex items-center gap-3">
+                    <span className="w-4 h-4 rounded bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.9)]" />
+                    <span className="font-bold text-base sm:text-lg text-white">Verified Safe Pass</span>
                   </div>
-                  <span className="font-extrabold font-mono text-sm sm:text-base text-emerald-400">
+                  <span className="font-black font-mono text-lg sm:text-xl text-emerald-400">
                     {(pctAllow * 100).toFixed(0)}%
                   </span>
                 </div>
-                <p className="text-[10px] text-white/50 mt-1 pl-6">Safe MCP tool execution authorized</p>
+                <p className="text-xs sm:text-sm text-zinc-300 font-sans mt-1.5 pl-7">Safe MCP tool execution authorized</p>
               </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-white/50">
+          <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs sm:text-sm text-zinc-300">
             <span className="flex items-center gap-2">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-white/80 font-semibold">FAIL-CLOSED ACTIVE</span>
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span className="text-white font-bold">FAIL-CLOSED ACTIVE</span>
             </span>
-            <span>MITRE T1059 / T1083 / T1195</span>
+            <span className="font-mono font-medium">MITRE T1059 / T1083 / T1195</span>
           </div>
         </TiltCard>
       </div>
 
       {/* 2. 3D ISOMETRIC VOLUMETRIC PILLAR HISTOGRAM */}
       <div className="lg:col-span-3">
-        <TiltCard maxTilt={14} className="p-6 rounded-2xl mirror-panel h-full flex flex-col justify-between">
-          <div className="flex items-center justify-between border-b border-white/10 pb-3.5">
-            <div className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded-lg bg-white/10 border border-white/15">
-                <BarChart3 className="w-4 h-4 text-white" />
+        <TiltCard maxTilt={6} className="p-7 sm:p-8 rounded-2xl mirror-panel h-full flex flex-col justify-between">
+          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-white/10 border border-white/15">
+                <BarChart3 className="w-6 h-6 text-white" />
               </div>
               <div>
-                <span className="font-bold text-white tracking-wider text-xs sm:text-sm">3D LATENCY PILLARS</span>
-                <p className="text-[10px] text-white/50">Microsecond Telemetry</p>
+                <span className="font-extrabold text-white tracking-wider text-base sm:text-lg">3D LATENCY PILLARS</span>
+                <p className="text-xs sm:text-sm text-zinc-300 mt-0.5">Microsecond Telemetry</p>
               </div>
             </div>
-            <div className="flex items-center gap-1 text-[11px] text-white/70 px-2.5 py-1 rounded-md border border-white/15 bg-white/5">
-              <Activity className="w-3 h-3 text-emerald-400" />
-              <span className="font-semibold">&lt; 5MS SLA</span>
+            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-emerald-400 px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 font-bold">
+              <Activity className="w-4 h-4 text-emerald-400" />
+              <span>&lt; 5MS SLA</span>
             </div>
           </div>
 
           {/* 3D Isometric Bar Stage */}
           <div className="my-4" style={{ transformStyle: 'preserve-3d' }}>
-            <div className="flex items-center justify-between text-[11px] text-white/50 mb-3">
-              <span>VOLUMETRIC PRISMS</span>
+            <div className="flex items-center justify-between text-xs sm:text-sm text-zinc-300 mb-3">
+              <span className="font-semibold uppercase tracking-wider">VOLUMETRIC PRISMS</span>
               <span className="text-white font-mono font-bold">
                 {hoveredBar !== null ? `${latencyPillars[hoveredBar].latency} (${latencyPillars[hoveredBar].count} calls)` : 'REALTIME TELEMETRY'}
               </span>
@@ -272,7 +272,7 @@ export function SocAnalytics({
 
             {/* Isometric SVG Graph with True 3D Volumetric Prisms */}
             <div 
-              className="relative w-full h-44 flex items-center justify-center p-1"
+              className="relative w-full h-56 flex items-center justify-center p-1"
               style={{ perspective: '850px', transformStyle: 'preserve-3d' }}
             >
               <svg 
@@ -378,18 +378,18 @@ export function SocAnalytics({
                         <g>
                           <rect 
                             x={x - 8} 
-                            y={topY - 28} 
-                            width="42" 
-                            height="18" 
-                            rx="4" 
+                            y={topY - 30} 
+                            width="46" 
+                            height="20" 
+                            rx="5" 
                             fill="#ffffff" 
                             filter="drop-shadow(0 2px 8px rgba(0,0,0,0.8))"
                           />
                           <text 
-                            x={x + 13} 
+                            x={x + 15} 
                             y={topY - 16} 
                             textAnchor="middle" 
-                            fontSize="9" 
+                            fontSize="11" 
                             fontWeight="bold" 
                             fill="#000000"
                             fontFamily="monospace"
@@ -404,9 +404,9 @@ export function SocAnalytics({
                         x={x + barWidth / 2}
                         y={baseY + 16}
                         textAnchor="middle"
-                        fontSize="9"
+                        fontSize="10"
                         fontFamily="monospace"
-                        fill={isHovered ? '#ffffff' : '#a1a1aa'}
+                        fill={isHovered ? '#ffffff' : '#d4d4d8'}
                         fontWeight={isHovered ? 'bold' : 'semibold'}
                       >
                         {pillar.label}
@@ -418,46 +418,46 @@ export function SocAnalytics({
             </div>
 
             {/* Quick Metrics */}
-            <div className="flex items-center justify-between text-[11px] text-white/80 mt-3 pt-2.5 border-t border-white/10">
+            <div className="flex items-center justify-between text-sm text-zinc-200 mt-4 pt-3.5 border-t border-white/10 font-mono">
               <div>
-                <span className="text-white/40">p50:</span> <strong className="text-white ml-1">3.8ms</strong>
+                <span className="text-zinc-400">p50:</span> <strong className="text-white ml-1">3.8ms</strong>
               </div>
               <div>
-                <span className="text-white/40">p99:</span> <strong className="text-white ml-1">6.2ms</strong>
+                <span className="text-zinc-400">p99:</span> <strong className="text-white ml-1">6.2ms</strong>
               </div>
               <div>
-                <span className="text-white/40">AI:</span> <strong className="text-cyan-400 ml-1">410ms</strong>
+                <span className="text-zinc-400">AI:</span> <strong className="text-cyan-400 ml-1">480ms</strong>
               </div>
             </div>
           </div>
 
-          <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-white/50">
-            <span>AXONOMETRIC PRISMS</span>
-            <span>&lt; 5MS GUARANTEE</span>
+          <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs sm:text-sm text-zinc-300">
+            <span className="font-semibold">AXONOMETRIC PRISMS</span>
+            <span className="font-bold text-emerald-400">&lt; 5MS GUARANTEE</span>
           </div>
         </TiltCard>
       </div>
 
       {/* 3. 3D STEPPED DEFENSE PIPELINE MATRIX */}
       <div className="lg:col-span-3">
-        <TiltCard maxTilt={14} className="p-6 rounded-2xl mirror-panel h-full flex flex-col justify-between">
-          <div className="flex items-center justify-between border-b border-white/10 pb-3.5">
-            <div className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded-lg bg-white/10 border border-white/15">
-                <ShieldAlert className="w-4 h-4 text-white" />
+        <TiltCard maxTilt={6} className="p-7 sm:p-8 rounded-2xl mirror-panel h-full flex flex-col justify-between">
+          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-white/10 border border-white/15">
+                <ShieldAlert className="w-6 h-6 text-white" />
               </div>
               <div>
-                <span className="font-bold text-white tracking-wider text-xs sm:text-sm">3D DEFENSE MATRIX</span>
-                <p className="text-[10px] text-white/50">Enforcer Pipelines</p>
+                <span className="font-extrabold text-white tracking-wider text-base sm:text-lg">3D DEFENSE MATRIX</span>
+                <p className="text-xs sm:text-sm text-zinc-300 mt-0.5">Enforcer Pipelines</p>
               </div>
             </div>
-            <div className="flex items-center gap-1 text-[11px] text-white/70 px-2.5 py-1 rounded-md border border-white/15 bg-white/5">
-              <Lock className="w-3 h-3 text-red-400" />
-              <span className="font-semibold">FAIL-CLOSED</span>
+            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-red-400 px-3 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 font-bold">
+              <Lock className="w-4 h-4 text-red-400" />
+              <span>FAIL-CLOSED</span>
             </div>
           </div>
 
-          <div className="space-y-3.5 my-4" style={{ transformStyle: 'preserve-3d' }}>
+          <div className="space-y-4 my-4" style={{ transformStyle: 'preserve-3d' }}>
             {[
               { id: 'T1083', name: 'Path Traversal', pct: 88, z: 18, status: 'BLOCKED', color: 'from-red-500 to-rose-400' },
               { id: 'T1059', name: 'Command Injection', pct: 76, z: 14, status: 'BLOCKED', color: 'from-red-500 to-rose-400' },
@@ -466,29 +466,29 @@ export function SocAnalytics({
             ].map((item, idx) => (
               <div 
                 key={idx} 
-                className="group relative p-3 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:border-white/30 transition-all duration-300 cursor-pointer"
+                className="group relative p-4 rounded-xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/30 transition-all duration-300 cursor-pointer"
                 style={{ 
                   transform: `translateZ(${item.z}px)`,
                   boxShadow: '0 8px 18px rgba(0,0,0,0.7)',
                 }}
               >
-                <div className="flex items-center justify-between text-xs mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="px-1.5 py-0.5 rounded bg-white text-black font-bold font-mono text-[10px] shadow-[0_0_8px_rgba(255,255,255,0.4)]">
+                <div className="flex items-center justify-between text-sm sm:text-base mb-2">
+                  <div className="flex items-center gap-2.5">
+                    <span className="px-2.5 py-0.5 rounded bg-white text-black font-extrabold font-mono text-xs sm:text-sm shadow-[0_0_8px_rgba(255,255,255,0.4)]">
                       {item.id}
                     </span>
-                    <span className="text-white/90 group-hover:text-white font-semibold transition">
+                    <span className="text-white group-hover:text-white font-bold transition">
                       {item.name}
                     </span>
                   </div>
-                  <span className="text-xs font-mono font-bold text-white">
+                  <span className="text-sm sm:text-base font-mono font-black text-white">
                     {item.pct}%
                   </span>
                 </div>
 
                 {/* 3D Recessed Conduit Bar */}
                 <div 
-                  className="w-full h-2.5 rounded-full overflow-hidden p-0.5 border border-white/10"
+                  className="w-full h-3.5 rounded-full overflow-hidden p-0.5 border border-white/10"
                   style={{
                     background: 'linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(20,20,20,0.95) 100%)',
                     boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.95)',
@@ -500,12 +500,12 @@ export function SocAnalytics({
                   />
                 </div>
 
-                <div className="flex items-center justify-between text-[10px] text-white/50 mt-2">
+                <div className="flex items-center justify-between text-xs sm:text-sm text-zinc-300 mt-2 font-mono">
                   <span className="flex items-center gap-1.5">
-                    <Cpu className="w-3 h-3 text-white/70" />
+                    <Cpu className="w-4 h-4 text-zinc-300" />
                     <span>Deterministic Gate</span>
                   </span>
-                  <span className={`font-mono font-bold ${item.status === 'BLOCKED' ? 'text-red-400' : item.status === 'ESCALATED' ? 'text-cyan-300' : 'text-emerald-400'}`}>
+                  <span className={`font-bold ${item.status === 'BLOCKED' ? 'text-red-400' : item.status === 'ESCALATED' ? 'text-cyan-300' : 'text-emerald-400'}`}>
                     {item.status}
                   </span>
                 </div>
@@ -513,9 +513,9 @@ export function SocAnalytics({
             ))}
           </div>
 
-          <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-white/50">
-            <span>FAIL-CLOSED ACTIVE</span>
-            <span>4 ENFORCERS READY</span>
+          <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs sm:text-sm text-zinc-300">
+            <span className="font-semibold text-white">FAIL-CLOSED ACTIVE</span>
+            <span className="font-bold text-emerald-400">4 ENFORCERS READY</span>
           </div>
         </TiltCard>
       </div>

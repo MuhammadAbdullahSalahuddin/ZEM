@@ -1,0 +1,27 @@
+# ZEM model roles -> Nebius Token Factory model IDs (verified via --list-models).
+#
+# Code asks for a ROLE ("fast_judge"), never a model name, so swapping models
+# is a one-line change here.
+#
+# Verified Nemotron models on Nebius Token Factory:
+#   - nvidia/Nemotron-3_5-Lightning
+#   - nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B
+#   - nvidia/nemotron-3-super-120b-a12b
+#   - nvidia/Nemotron-3-Ultra-550b-a55b
+#   - nvidia/Nemotron-3.5-Super-VL
+
+base_url: "https://api.tokenfactory.nebius.com/v1/"
+
+roles:
+  fast_judge:
+    model: "nvidia/Nemotron-3_5-Lightning"
+    max_tokens: 300
+    temperature: 0.0
+    timeout_s: 10
+    enable_thinking: false
+  deep_judge:
+    model: "nvidia/nemotron-3-super-120b-a12b"
+    max_tokens: 700
+    temperature: 0.0
+    timeout_s: 20
+    enable_thinking: false

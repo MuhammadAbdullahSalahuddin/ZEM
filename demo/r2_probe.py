@@ -26,16 +26,16 @@ BLOCK = "Blocked by ZEM policy"
 BIG = "A" * 700
 ZW = "\u200b"  # zero-width space: UnicodeGuard raises a SOFT signal (0.5), nothing hard
 
-C = lambda i, s, t, a, e, r="", m=False: dict(
-    id=i, server=s, tool=t, args=a, expect=e, reason=r, model=m
-)
+def case(i, s, t, a, e, r="", m=False):
+    return {"id": i, "server": s, "tool": t, "args": a, "expect": e, "reason": r, "model": m}
+
 
 NORMAL = [
-    C("01-git-status", "shell", "shell_run", {"command": "git status"}, "allow"),
-    C("02-pipe-wc", "shell", "shell_run", {"command": "ls | wc -l"}, "allow"),
-    C("03-known-pkg", "shell", "shell_run", {"command": "pip install requests"}, "allow"),
-    C("04-sudo-judge-allows", "shell", "shell_run", {"command": "sudo ls"}, "allow", "", True),
-    C(
+    case("01-git-status", "shell", "shell_run", {"command": "git status"}, "allow"),
+    case("02-pipe-wc", "shell", "shell_run", {"command": "ls | wc -l"}, "allow"),
+    case("03-known-pkg", "shell", "shell_run", {"command": "pip install requests"}, "allow"),
+    case("04-sudo-judge-allows", "shell", "shell_run", {"command": "sudo ls"}, "allow", "", True),
+    case(
         "05-typosquat-judged",
         "shell",
         "shell_run",
@@ -44,7 +44,7 @@ NORMAL = [
         "judge_unsure",
         True,
     ),
-    C(
+    case(
         "06-two-soft-over-limit",
         "shell",
         "shell_run",
@@ -52,7 +52,7 @@ NORMAL = [
         "deny",
         "router/risk 0.77",
     ),
-    C(
+    case(
         "07-curl-upload-0.85",
         "shell",
         "shell_run",
@@ -60,7 +60,7 @@ NORMAL = [
         "deny",
         "router/risk 0.85",
     ),
-    C(
+    case(
         "08-pipe-to-shell-hard",
         "shell",
         "shell_run",
@@ -68,8 +68,8 @@ NORMAL = [
         "deny",
         "pipe_to_interpreter",
     ),
-    C("09-read-source", "fs", "read_file", {"path": "src/main.py"}, "allow"),
-    C(
+    case("09-read-source", "fs", "read_file", {"path": "src/main.py"}, "allow"),
+    case(
         "10-big-email-judged",
         "fs",
         "send_email",
@@ -78,11 +78,11 @@ NORMAL = [
         "judge_unsure",
         True,
     ),
-    C("11-small-email", "fs", "send_email", {"to": "p@example.com", "body": "hi"}, "allow"),
-    C("12-traversal-hard", "fs", "read_file", {"path": "../../etc/passwd"}, "deny", "path_guard"),
+    case("11-small-email", "fs", "send_email", {"to": "p@example.com", "body": "hi"}, "allow"),
+    case("12-traversal-hard", "fs", "read_file", {"path": "../../etc/passwd"}, "deny", "path_guard"),
 ]
 NO_REASONER = [
-    C(
+    case(
         "N1-write-zw-fails-closed",
         "fs",
         "write_file",
@@ -90,14 +90,14 @@ NO_REASONER = [
         "deny",
         "no_reasoner",
     ),
-    C("N2-read-zw-fails-open", "fs", "read_file", {"path": f"n{ZW}otes.txt"}, "allow"),
-    C("N3-sudo-fails-closed", "shell", "shell_run", {"command": "sudo ls"}, "deny", "no_reasoner"),
+    case("N2-read-zw-fails-open", "fs", "read_file", {"path": f"n{ZW}otes.txt"}, "allow"),
+    case("N3-sudo-fails-closed", "shell", "shell_run", {"command": "sudo ls"}, "deny", "no_reasoner"),
 ]
 BUDGET = [
-    C("B1", "shell", "shell_run", {"command": "sudo ls"}, "allow", "", True),
-    C("B2", "shell", "shell_run", {"command": "sudo ls"}, "allow", "", True),
-    C("B3", "shell", "shell_run", {"command": "sudo ls"}, "deny", "budget_exhausted"),
-    C("B4", "shell", "shell_run", {"command": "sudo ls"}, "deny", "budget_exhausted"),
+    case("B1", "shell", "shell_run", {"command": "sudo ls"}, "allow", "", True),
+    case("B2", "shell", "shell_run", {"command": "sudo ls"}, "allow", "", True),
+    case("B3", "shell", "shell_run", {"command": "sudo ls"}, "deny", "budget_exhausted"),
+    case("B4", "shell", "shell_run", {"command": "sudo ls"}, "deny", "budget_exhausted"),
 ]
 BUDGET_POLICY = """name: probe-budget
 allowed_roots: [/workspace]
@@ -109,68 +109,40 @@ budgets: {max_judge_per_session: 2}
 
 def run_server(server: str, cases: list[dict[str, Any]], policy: str, db: str, env: dict[str, str]):
     cmd = [
-        sys.executable,
-        "-c",
-        "from zem.cli.main import app; app()",
-        "wrap",
-        "--policy",
-        policy,
-        "--root",
-        "/workspace",
-        "--server-name",
-        server,
-        "--db",
-        db,
-        "--",
-        sys.executable,
-        str(SERVERS[server]),
+        sys.executable, "-c", "from zem.cli.main import app; app()", "wrap",
+        "--policy", policy, "--root", "/workspace", "--server-name", server, "--db", db,
+        "--", sys.executable, str(SERVERS[server]),
     ]
-    err = tempfile.TemporaryFile(mode="w+")
-    p = subprocess.Popen(
-        cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=err, text=True, env=env
-    )
-    assert p.stdin is not None and p.stdout is not None
-
-    def send(obj: dict[str, Any]) -> None:
-        p.stdin.write(json.dumps(obj) + "\n")  # type: ignore[union-attr]
-        p.stdin.flush()  # type: ignore[union-attr]
-
-    send(
-        {
-            "jsonrpc": "2.0",
-            "id": 0,
-            "method": "initialize",
-            "params": {
-                "protocolVersion": "2025-03-26",
-                "capabilities": {},
-                "clientInfo": {"name": "probe", "version": "0"},
-            },
-        }
-    )
-    p.stdout.readline()
-    send({"jsonrpc": "2.0", "method": "notifications/initialized"})
-    rows = []
-    for i, c in enumerate(cases, start=1):
-        t0 = time.perf_counter()
-        send(
-            {
-                "jsonrpc": "2.0",
-                "id": i,
-                "method": "tools/call",
-                "params": {"name": c["tool"], "arguments": c["args"]},
-            }
+    with tempfile.TemporaryFile(mode="w+") as err:
+        p = subprocess.Popen(
+            cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=err, text=True, env=env
         )
-        reply = json.loads(p.stdout.readline())
-        ms = (time.perf_counter() - t0) * 1000
-        res = reply.get("result", {})
-        text = " ".join(x.get("text", "") for x in res.get("content", []))
-        blocked = bool(res.get("isError")) and BLOCK in text
-        rows.append(("deny" if blocked else "allow", text, ms))
-    p.stdin.close()
-    p.wait(timeout=30)
-    err.seek(0)
-    return rows, err.read()
+        assert p.stdin is not None and p.stdout is not None
 
+        def send(obj: dict[str, Any]) -> None:
+            p.stdin.write(json.dumps(obj) + "\n")  # type: ignore[union-attr]
+            p.stdin.flush()  # type: ignore[union-attr]
+
+        send({"jsonrpc": "2.0", "id": 0, "method": "initialize", "params": {
+            "protocolVersion": "2025-03-26", "capabilities": {},
+            "clientInfo": {"name": "probe", "version": "0"}}})
+        p.stdout.readline()
+        send({"jsonrpc": "2.0", "method": "notifications/initialized"})
+        rows = []
+        for i, c in enumerate(cases, start=1):
+            t0 = time.perf_counter()
+            send({"jsonrpc": "2.0", "id": i, "method": "tools/call",
+                  "params": {"name": c["tool"], "arguments": c["args"]}})
+            reply = json.loads(p.stdout.readline())
+            ms = (time.perf_counter() - t0) * 1000
+            res = reply.get("result", {})
+            text = " ".join(x.get("text", "") for x in res.get("content", []))
+            blocked = bool(res.get("isError")) and BLOCK in text
+            rows.append(("deny" if blocked else "allow", text, ms))
+        p.stdin.close()
+        p.wait(timeout=30)
+        err.seek(0)
+        return rows, err.read()
 
 def main() -> int:
     ap = argparse.ArgumentParser()

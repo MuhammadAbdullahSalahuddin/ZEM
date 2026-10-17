@@ -52,6 +52,10 @@ def list_dir(path: str = ".") -> str:
     names = sorted(f for f in FILES if f.startswith(base))
     return "\n".join(names) or "(empty)"
 
+@mcp.tool()
+def send_email(to: str, body: str) -> str:
+    """Send an email. SIMULATED: nothing is sent."""
+    return f"[SIMULATION ONLY] email to {to}, {len(body)} chars"
 
 @mcp.tool()
 def write_file(path: str, content: str) -> str:

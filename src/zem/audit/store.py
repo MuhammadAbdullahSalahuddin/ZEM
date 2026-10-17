@@ -23,8 +23,10 @@ def _scrub(event: AuditEvent) -> AuditEvent:
     ctx = ctx.model_copy(update={"arguments": {"_redacted": "secret detected"}, "signals": signals})
     reasons = [f"{s.detector}/{s.code}" for s in signals if s.hard_deny]
     final = event.final.model_copy(update={"reasons": reasons})
-    return event.model_copy(update={"context": ctx, "final": final})
-
+    update: dict[str, Any] = {"context": ctx, "final": final}
+    if event.judge is not None:
+        update["judge"] = event.judge.model_copy(update={"reason": "[redacted]"})
+    return event.model_copy(update=update)
 
 class SqliteAudit:
     """Plain event log (R1). The hash chain arrives in R3."""

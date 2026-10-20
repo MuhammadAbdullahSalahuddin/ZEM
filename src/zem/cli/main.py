@@ -6,6 +6,7 @@ import os
 import time
 from pathlib import Path
 from typing import Annotated
+from uuid import uuid4
 
 import typer
 
@@ -18,6 +19,7 @@ from zem.detectors.secret_guard import SecretGuard
 from zem.detectors.shell_guard import ShellGuard
 from zem.detectors.tool_guard import ToolGuard
 from zem.detectors.unicode_guard import UnicodeGuard
+from zem.pipeline.egress import make_egress_hook
 from zem.pipeline.orchestrator import Pipeline, make_interceptor
 from zem.policy.loader import PolicyError, load_policy
 from zem.protocol.stdio_proxy import run_proxy
@@ -80,8 +82,17 @@ def wrap(
         raise typer.Exit(2)
     if pol.judge.enabled and reasoner is None:
         typer.echo("[zem] WARNING: judge enabled but no reasoner; gray calls use on_error", err=True)
-    interceptor = make_interceptor(pipeline, server=server_name, audit=SqliteAudit(db), reasoner=reasoner, policy=pol )
-    code = asyncio.run(run_proxy(cmd, interceptor))
+    sid = uuid4().hex  # one id shared by request rows and result rows
+    audit = SqliteAudit(db)
+    interceptor = make_interceptor(
+        pipeline, server=server_name, session_id=sid, audit=audit, reasoner=reasoner, policy=pol
+    )
+    hook = (
+        make_egress_hook(pol.egress, audit=audit, server=server_name, session_id=sid)
+        if pol.egress.enabled
+        else None
+    )
+    code = asyncio.run(run_proxy(cmd, interceptor, hook))
     raise typer.Exit(code)
 
 
@@ -123,6 +134,7 @@ def stats(db: Annotated[str, typer.Option("--db")] = DEFAULT_DB) -> None:
     """% of calls decided without a model, and judge latency p50/p95."""
     rows = SqliteAudit(db).db.execute("SELECT event_json FROM events").fetchall()
     events = [json.loads(r["event_json"]) for r in rows]
+    events = [e for e in events if not e["context"]["tool"].endswith("[result]")]
     if not events:
         typer.echo("no events")
         return

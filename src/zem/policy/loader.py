@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Literal
 
 import yaml
-from pydantic import BaseModel, ConfigDict, ValidationError, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
 POLICY_DIR = Path(__file__).resolve().parents[3] / "policies"
 
@@ -45,6 +46,73 @@ class Budgets(BaseModel):
     max_judge_per_session: int = 15
     max_judge_global: int = 200
 
+EgressAction = Literal["redact", "flag", "block", "off"]
+PACKS = ("secrets", "pii_ids", "contact", "injection")
+MAX_CUSTOM_PATTERN = 200
+# Catches the classic freeze-ZEM shapes like (a+)+ or (.*)*. A heuristic, not a proof.
+_NESTED_QUANTIFIER = re.compile(r"\([^)]*[+*][^)]*\)[+*{]")
+
+
+class CustomEgressRule(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str
+    pattern: str
+    action: EgressAction = "redact"
+
+    @field_validator("name")
+    @classmethod
+    def _name_ok(cls, v: str) -> str:
+        if not re.fullmatch(r"[a-z][a-z0-9_]{0,39}", v):
+            raise ValueError("name must be lower_snake_case, at most 40 characters")
+        if v in PACKS:
+            raise ValueError(f"'{v}' is a built-in pack name")
+        return v
+
+    @field_validator("pattern")
+    @classmethod
+    def _pattern_ok(cls, v: str) -> str:
+        if not v or len(v) > MAX_CUSTOM_PATTERN:
+            raise ValueError(f"pattern must be 1-{MAX_CUSTOM_PATTERN} characters")
+        if _NESTED_QUANTIFIER.search(v):
+            raise ValueError("pattern has nested repetition and could freeze ZEM")
+        try:
+            re.compile(v)
+        except re.error as exc:
+            raise ValueError(f"invalid regex: {exc}") from exc
+        return v
+
+
+class EgressException(BaseModel):
+    """This tool is SUPPOSED to return this kind of data, so skip these rules for it."""
+
+    model_config = ConfigDict(extra="forbid")
+    tool: str
+    allow: list[str]
+
+
+class EgressSettings(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    enabled: bool = True
+    secrets: EgressAction = "redact"
+    pii_ids: EgressAction = "redact"
+    contact: EgressAction = "flag"
+    injection: EgressAction = "flag"
+    custom: list[CustomEgressRule] = []
+    exceptions: list[EgressException] = []
+    max_scan_chars: int = Field(default=2_000_000, gt=0)
+
+    @model_validator(mode="after")
+    def _consistent(self) -> EgressSettings:
+        names = [r.name for r in self.custom]
+        if len(set(names)) != len(names):
+            raise ValueError("duplicate custom egress rule names")
+        known = set(PACKS) | set(names)
+        for exc in self.exceptions:
+            unknown = [a for a in exc.allow if a not in known]
+            if unknown:
+                raise ValueError(f"exception for '{exc.tool}' names unknown rules: {unknown}")
+        return self
+
 class Policy(BaseModel):
     model_config = ConfigDict(extra="forbid")  # a typo in YAML must fail, not be ignored
     name: str
@@ -60,7 +128,7 @@ class Policy(BaseModel):
     )
     read_only_tools: list[str] = []  # extra tool names treated as read-only
     known_packages: list[str] = []  # your project's own dependencies 
-
+    egress: EgressSettings = EgressSettings()
 def load_policy(ref: str) -> Policy:
     is_path = ref.endswith((".yaml", ".yml")) or "/" in ref
     path = Path(ref) if is_path else POLICY_DIR / f"{ref}.yaml"

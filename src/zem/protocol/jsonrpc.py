@@ -36,4 +36,18 @@ def blocked_response(request_id: Any, reason: str) -> dict[str, Any]:
             "content": [{"type": "text", "text": f"Blocked by ZEM policy: {reason}"}],
             "isError": True,
         },
+    
+    }
+
+def is_response(msg: dict[str, Any]) -> bool:
+    """A reply to something we sent: has an id and a result/error, and no method."""
+    return "method" not in msg and "id" in msg and ("result" in msg or "error" in msg)
+
+
+def error_response(request_id: Any, message: str, code: int = -32000) -> dict[str, Any]:
+    """A JSON-RPC level error, for messages that are not tools/call (tools/list, garbage...)."""
+    return {
+        "jsonrpc": "2.0",
+        "id": request_id,
+        "error": {"code": code, "message": f"Blocked by ZEM policy: {message}"},
     }

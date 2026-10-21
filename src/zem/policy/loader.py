@@ -113,6 +113,15 @@ class EgressSettings(BaseModel):
                 raise ValueError(f"exception for '{exc.tool}' names unknown rules: {unknown}")
         return self
 
+class PinSettings(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    enabled: bool = True
+    on_change: Literal["quarantine", "flag"] = "quarantine"
+    on_poison: Literal["quarantine", "flag"] = "quarantine"
+    on_new_tool: Literal["pin", "quarantine"] = "pin"  # tools that appear after the server was pinned
+    max_tools: int = Field(default=500, gt=0)
+    max_description_chars: int = Field(default=3000, gt=0)
+
 class Policy(BaseModel):
     model_config = ConfigDict(extra="forbid")  # a typo in YAML must fail, not be ignored
     name: str
@@ -129,6 +138,9 @@ class Policy(BaseModel):
     read_only_tools: list[str] = []  # extra tool names treated as read-only
     known_packages: list[str] = []  # your project's own dependencies 
     egress: EgressSettings = EgressSettings()
+    pins: PinSettings = PinSettings()
+
+    
 def load_policy(ref: str) -> Policy:
     is_path = ref.endswith((".yaml", ".yml")) or "/" in ref
     path = Path(ref) if is_path else POLICY_DIR / f"{ref}.yaml"

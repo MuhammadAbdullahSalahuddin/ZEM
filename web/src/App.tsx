@@ -341,31 +341,51 @@ export function App() {
       },
       judge: isGrayZone ? {
         verdict: 'deny',
-        confidence: 0.93,
-        reason: 'Untrusted package execution flagged by Nemotron model on Nebius.',
-        risk_tags: ['untrusted_source', 'typosquat_mimic'],
+        confidence: 0.96,
+        reason: 'Tavily threat intelligence confirmed package is a malicious PyPI typosquat (OSV-2026-4412) executing setup.py credential exfiltration.',
+        risk_tags: ['typosquat', 'supply_chain_malware', 'osv_confirmed'],
         needs_intel: true,
-        intel_query: 'security audit query for simulated call',
+        intel_query: 'pypi requests-security-patch malware advisory',
         model_id: 'nvidia/Nemotron-3_5-Lightning',
-        latency_ms: 480,
-        tokens_in: 310,
-        tokens_out: 42
+        latency_ms: 385,
+        tokens_in: 412,
+        tokens_out: 46
+      } : null,
+      intel: isGrayZone ? {
+        query: 'pypi requests-security-patch malware advisory',
+        cached: false,
+        latency_ms: 312,
+        items: [
+          {
+            title: 'OSV-2026-4412: Malicious Typosquat Package requests-security-patch on PyPI',
+            url: 'https://osv.dev/vulnerability/OSV-2026-4412',
+            snippet: 'Malicious package mimicking urllib/requests. Executes post-install hook in setup.py to exfiltrate environment variables and SSH keys.',
+            score: 0.97
+          },
+          {
+            title: 'Snyk Security Advisory: pip/requests-security-patch',
+            url: 'https://security.snyk.io/package/pip/requests-security-patch',
+            snippet: 'Flagged as supply-chain malware (CWE-506). Do not install in CI or agent environments.',
+            score: 0.93
+          }
+        ]
       } : null,
       final: {
         decision: isMalicious || isGrayZone ? 'deny' : 'allow',
-        risk: isMalicious ? 0.98 : isGrayZone ? 0.88 : 0.02,
+        risk: isMalicious ? 0.98 : isGrayZone ? 0.96 : 0.02,
         reasons: isMalicious 
           ? ['Blocked by deterministic policy detector: hard_deny matched.'] 
           : isGrayZone 
-          ? ['Nemotron AI Judge evaluated request as high risk.'] 
+          ? ['Blocked after Tavily Intel + Nemotron AI Judge confirmed PyPI typosquat malware.'] 
           : ['Routine developer operation verified and allowed.']
       },
       latency_breakdown_ms: {
         normalize: 1,
         detectors: 2,
-        judge: isGrayZone ? 410 : 0,
+        intel: isGrayZone ? 312 : 0,
+        judge: isGrayZone ? 385 : 0,
         policy: 1,
-        total: isGrayZone ? 414 : 4
+        total: isGrayZone ? 701 : 4
       }
     };
 
@@ -1042,10 +1062,60 @@ export function App() {
                         </div>
                       </div>
 
-                      {/* 7. External Threat Intel (Tavily) */}
-                      {selectedEvent.judge.intel_query && (
-                        <div className="pt-3.5 border-t border-white/10 text-xs sm:text-sm text-zinc-200">
-                          <span className="text-white font-bold">Tavily Intel Query:</span> "{selectedEvent.judge.intel_query}"
+                      {/* 7. External Threat Intel (Tavily Search API Dossier) */}
+                      {(selectedEvent.intel || selectedEvent.judge.intel_query) && (
+                        <div className="pt-4 border-t border-white/10 space-y-3">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="px-2.5 py-0.5 rounded-md bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-extrabold uppercase tracking-wider">
+                                TAVILY WEB RADAR
+                              </span>
+                              <span className="text-xs sm:text-sm text-zinc-200 font-bold truncate max-w-[260px]">
+                                "{selectedEvent.intel?.query || selectedEvent.judge.intel_query}"
+                              </span>
+                            </div>
+                            {selectedEvent.intel && (
+                              <div className="flex items-center gap-2 text-xs font-mono">
+                                <span className={`px-2 py-0.5 rounded border font-bold ${
+                                  selectedEvent.intel.cached
+                                    ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300'
+                                    : 'border-cyan-500/40 bg-cyan-500/15 text-cyan-300'
+                                }`}>
+                                  {selectedEvent.intel.cached ? 'SQLITE CACHE HIT' : 'LIVE WEB LOOKUP'}
+                                </span>
+                                <span className="text-zinc-300 font-bold">{selectedEvent.intel.latency_ms}ms</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {selectedEvent.intel && selectedEvent.intel.items.length > 0 && (
+                            <div className="space-y-2.5">
+                              {selectedEvent.intel.items.map((item, idx) => (
+                                <a
+                                  key={idx}
+                                  href={item.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="block p-3.5 rounded-xl bg-black/80 border border-amber-500/30 hover:border-amber-400/60 transition space-y-1.5"
+                                >
+                                  <div className="flex items-start justify-between gap-2">
+                                    <span className="text-xs sm:text-sm font-bold text-white leading-snug">
+                                      {item.title}
+                                    </span>
+                                    <span className="px-2 py-0.5 rounded bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs font-mono font-black shrink-0">
+                                      {Math.round(item.score * 100)}% MATCH
+                                    </span>
+                                  </div>
+                                  <p className="text-xs sm:text-sm text-zinc-200 font-sans leading-relaxed">
+                                    {item.snippet}
+                                  </p>
+                                  <div className="text-xs font-mono text-amber-300/90 truncate">
+                                    {item.url}
+                                  </div>
+                                </a>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

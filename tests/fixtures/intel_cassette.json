@@ -1,0 +1,187 @@
+{
+  "05706cc96c35cdf8562844a0f0f2f9e5d14ea25476b9c77b970d726a60bd86c6": {
+    "cached": false,
+    "items": [
+      {
+        "score": 0.8820324,
+        "snippet": "Conclusion: This blog has revealed the potential attack vectors and security implications associated with the misuse of Webhook.site. By understanding the underlying technology and functionality, we have demonstrated how attackers can exploit this service for data exfiltration and command injection. Implementing appropriate security measures, inclu...[truncated]",
+        "title": "Medium",
+        "url": "https://medium.com/@excybex/this-blog-explores-the-potential-misuse-of-webhook-site-89baecd7704b"
+      },
+      {
+        "score": 0.7942736,
+        "snippet": "the attacker. The data exfiltrated can include sensitive information such as user credentials, customer data, or financial information. Webhook attacks can be used to bypass outbound traffic control because the exfiltrated data is transmitted through legitimate channels that are often used by the web application. This makes it difficult for traditi...[truncated]",
+        "title": "Exfiltration Over Webhooks (T0156) | OSC&R Technique | OX Security",
+        "url": "https://www.ox.security/technique/T0156"
+      },
+      {
+        "score": 0.77096564,
+        "snippet": "| ID | Name | Analytic ID | Analytic Description | --- --- | | DET0153 | Detection Strategy for Exfiltration Over Webhook | AN0436 | Unusual processes (e.g., powershell.exe, wscript.exe, mshta.exe) posting data to webhook endpoints (Discord, Slack, webhook.site) using HTTP POST/PUT requests. Defender perspective: suspicious process lineage followed...[truncated]",
+        "title": "Exfiltration Over Web Service: Exfiltration Over Webhook, Sub-technique T1567.004 - Enterprise | MITRE ATT&CK\u00ae",
+        "url": "https://attack.mitre.org/techniques/T1567/004"
+      },
+      {
+        "score": 0.767847,
+        "snippet": "Data exfiltration represents another significant risk when webhook security fails. Attackers can craft requests that cause applications to return sensitive information in error messages or through side-channel attacks that infer data from processing times or behaviors. Webhooks integrated with databases or internal services can become pivots for la...[truncated]",
+        "title": "Webhook Security: Definition, Explanation & Best Practices for Secure Endpoints | Kusari",
+        "url": "https://www.kusari.dev/learning-center/webhook-security"
+      },
+      {
+        "score": 0.6607204,
+        "snippet": "\u2713 How it helps with webhooks: Event Threat Detection can identify suspicious activities that might lead to or be caused by malicious webhooks, such as: \u2713 Credential Access: Compromised credentials used to create or modify webhooks. \u2713 Data Exfiltration: Unusual outbound network connections or data transfers that could be orchestrated by a malicious ...[truncated]",
+        "title": "WebHooks | Community",
+        "url": "https://security.googlecloudcommunity.com/cloud-security-foundation-7/webhooks-5421"
+      }
+    ],
+    "latency_ms": 3704,
+    "query": "webhook.site data exfiltration security advisory"
+  },
+  "3309cfe977330dbd4a2011d0111c414e295531ca1fc5785efdbe831baa969b2d": {
+    "cached": false,
+    "items": [
+      {
+        "score": 0.7722049,
+        "snippet": "Once you're in the pip folder execute the command pip install requests to install the Requests package. This will install the latest version of Requests from PyPI (Python Package Index). After installation you can verify its success by opening a Python console or creating a Python script and importing the Requests module with import requests. If no...[truncated]",
+        "title": "Requests Library in Python",
+        "url": "https://hyperskill.org/university/python/requests-library-in-python"
+      },
+      {
+        "score": 0.7591723,
+        "snippet": "Requests is one of the most downloaded Python packages today, pulling in around `300M downloads / week` \u2014 according to GitHub, Requests is currently depended upon by `4,000,000+` repositories. `300M downloads / week` `4,000,000+` ## Installing Requests and Supported Versions Requests is available on PyPI: Requests officially supports Python 3.10+. ...[truncated]",
+        "title": "GitHub - psf/requests: A simple, yet elegant, HTTP library. \u00b7 GitHub",
+        "url": "https://github.com/psf/requests"
+      },
+      {
+        "score": 0.6466616,
+        "snippet": "There are no more guides. You are now guideless. Good luck. Requests logo Requests is an elegant and simple HTTP library for Python, built for human beings. ### Useful Links Quickstart Advanced Usage API Reference Release History Contributors Guide Recommended Packages and Extensions Requests @ GitHub Requests @ PyPI Issue Tracker ### Quick search ...[truncated]",
+        "title": "Requests: HTTP for Humans\u2122 \u2014 Requests 2.34.2 documentation",
+        "url": "https://requests.readthedocs.io"
+      },
+      {
+        "score": 0.51413256,
+        "snippet": "# PyPI Stats Search All packages Top packages Track packages # requests PyPI page Home page Author: None License: Apache-2.0 Summary: Python HTTP for Humans. Latest version: 2.34.2 Required dependencies: certifi | charset\\_normalizer | idna | urllib3 Optional dependencies: chardet | pysocks Downloads last day: 45,763,581 Downloads last week: 302,73...[truncated]",
+        "title": "PyPI Download Stats",
+        "url": "https://pypistats.org/packages/requests"
+      },
+      {
+        "score": 0.45217365,
+        "snippet": "Use this service to order a certified copy of a document from the company's filing history. You can also use this service to order an incorporation package, which includes the documents that were issued when the company was formed. Order certified document Tell us what you think of this service(link opens a new window) Is there anything wrong with ...[truncated]",
+        "title": "PYPI LTD more information - Find and update company information - GOV.UK",
+        "url": "https://find-and-update.company-information.service.gov.uk/company/08815142/more"
+      }
+    ],
+    "latency_ms": 2297,
+    "query": "pypi requests official package"
+  },
+  "b99d514c51f270a3f28a86b78bc6d150af0dd20fbacd1d2a92957664d7ec46da": {
+    "cached": false,
+    "items": [
+      {
+        "score": 0.7043437,
+        "snippet": "Share Highlights: 1. PiPI is one of the largest Indexes, with more than 800,000 users 2. Check Point CloudGuard identified a typosquatting campaign on PyPI, comprising over 500 malicious packages. 3. Installation of these packages exposed users to potential theft of their personally identifiable information (PII) and the installation of malware on ...[truncated]",
+        "title": "PyPI Inundated by Malicious Typosquatting Campaign - Check Point Blog",
+        "url": "https://blog.checkpoint.com/securing-the-cloud/pypi-inundated-by-malicious-typosquatting-campaign"
+      },
+      {
+        "score": 0.68697983,
+        "snippet": "# Typo squatting on PyPI: should we report non-malicious packages? Today I\u2019ve incidentally noticed that there is a PyPI package called nuumpy which looks pretty much like a case of typo squatting. However, a quick look at the code suggests it\u2019s not malware (at this time). It doesn\u2019t seem particularly useful (or \u201cloved\u201d, as I\u2019d say) either. This bri...[truncated]",
+        "title": "Typo squatting on PyPI: should we report non-malicious packages? - Packaging - Discussions on Python.org",
+        "url": "https://discuss.python.org/t/typo-squatting-on-pypi-should-we-report-non-malicious-packages/107116"
+      },
+      {
+        "score": 0.6864757,
+        "snippet": "The typosquatting attack commenced around 15:06 UTC on March 26, 2024, with variations targeting different libraries. After a brief pause, the attack resumed the next day with additional variations. In total, 566 typosquat publications were identified. PyPI promptly removed these packages, and to prevent further attacks, they temporarily suspended ...[truncated]",
+        "title": "RH-ISAC | Typosquatting Campaign Targets Python Developers with Hundreds of Malicious Libraries - RH-ISAC",
+        "url": "https://rhisac.org/threat-intelligence/typosquatting-campaign-targets-python-developers-with-hundreds-of-malicious-libraries"
+      },
+      {
+        "score": 0.62303346,
+        "snippet": "We reported our findings to PyPI on Thursday, and are still waiting for a response. However, after we reached out to b8ff, the author himself renamed the 'requesys' package to prevent further typosquatting victims falling for the ransomware, effectively thwarting the attack. [...] This isn't the first time that 'requests' has been impersonated by t...[truncated]",
+        "title": "Malicious Python Packages Mimic 'Requests' Library",
+        "url": "https://www.sonatype.com/blog/ransomware-in-a-pypi-sonatype-spots-requests-typosquat"
+      },
+      {
+        "score": 0.44189036,
+        "snippet": "Conclusion: We found that scanning for suspicious patterns only in the installation script would not be enough as the malicious code can be injected into a regular module, and used from somewhere else (e.g., from setup.py file) using different methods (e.g., _import_ or _exit handlers function_) Thank you Michael for your malicious example and anal...[truncated]",
+        "title": "Analyzing the Python typosquatting malicious \u201crequest\u201d package",
+        "url": "https://medium.com/@vuducly151092/analyzing-the-python-typosquatting-malicious-request-package-e80aeda925b0"
+      }
+    ],
+    "latency_ms": 2608,
+    "query": "pypi reqeusts typosquatting advisory"
+  },
+  "d407ae511171348334cc9dc24ec9bcda901c24f4abfaa6b53e6bc5de478a4829": {
+    "cached": false,
+    "items": [
+      {
+        "score": 0.31789243,
+        "snippet": "The initial Evilgrab payload uses the SEH to carry out the installation process, by setting up the SEH to call specific functions in the event of an exception and including code that purposefully causes an exception. Evilgrab uses the SEH and forced exceptions as an anti-analysis technique to add a level of difficulty to the malware analysis proces...[truncated]",
+        "title": "Evilgrab Delivered by Watering Hole Attack on President of Myanmar\u2019s Website",
+        "url": "https://unit42.paloaltonetworks.com/evilgrab-delivered-by-watering-hole-attack-on-president-of-myanmars-website"
+      },
+      {
+        "score": 0.29681778,
+        "snippet": "\"Think of it like how airlines operate different aircraft for different routes: This new aircraft will streamline our deliveries of larger orders,\" said Adam Woodworth, CEO of Wing. \"For example, you could order last-minute ingredients for dinner \u2014 pasta, marinara sauce, parmesan cheese, canned olives and garlic.\" [...] 2. Day losers 3. Highest ope...[truncated]",
+        "title": "Google\u2019s Wing introduces new delivery drone with double the payload",
+        "url": "https://finance.yahoo.com/news/google-wing-introduces-delivery-drone-120000552.html"
+      },
+      {
+        "score": 0.21334475,
+        "snippet": "The way of delivering payloads varies from target to target and they are countless. Attackers follow trial and error method while crafting & delivering them to achieve their goal which depends on following cases. It\u2019s always better to use a payload which does not touches the disk and runs in the memory(Fileless malware) which make attack more steal...[truncated]",
+        "title": "Payload Delivery. Attackers must first find a method to\u2026 | by Mohan reddy | Redteam & Blueteam Series | Medium",
+        "url": "https://medium.com/redteam-blueteam-series/payload-delivery-a8cd7f4bf3e3"
+      },
+      {
+        "score": 0.20880781,
+        "snippet": "At its core, the term \u201cpayload\u201d is borrowed from military terminology, where it often refers to the part of a weapon that does the intended damage. In cybersecurity, it works the same way. The payload is the result of weeks (or months!) of scheming by cybercriminals to reach their ultimate goal, whether that\u2019s encrypting files, stealing personal in...[truncated]",
+        "title": "What is Payload in Cybersecurity? | Types & Delivery Methods | Huntress",
+        "url": "https://www.huntress.com/cybersecurity-101/topic/payload-in-cybersecurity"
+      },
+      {
+        "score": 0.15330847,
+        "snippet": "The lifecycle of a malicious payload consists of three main stages: Delivery, Execution, and Actions Performed. Understanding each step helps cybersecurity teams prevent and mitigate these threats effectively. ### 1. Delivery: How malicious payloads enter systems [...] A malicious payload is the executable code within malware that performs harmful ...[truncated]",
+        "title": "What Is a Payload in Cybersecurity? | Cymulate",
+        "url": "https://cymulate.com/cybersecurity-glossary/payload"
+      }
+    ],
+    "latency_ms": 2577,
+    "query": "paste.evil.example payload delivery"
+  },
+  "e357fda89d4efacf9b8bf58820576e6ebdcff95395f524ed341f707340682f2e": {
+    "cached": false,
+    "items": [
+      {
+        "score": 0.6453216,
+        "snippet": "### Main menu Skip to content # Security advisory regarding Python/Conda/pip/PyPI AUDIENCE: All Python/Conda users IMPACT: Potential malicious packages installed or malware downloaded [...] Numerous packages containing malware/malicious links have been uploaded to the PyPI (Python Package Index) repository. Many of these have names which are slight...[truncated]",
+        "title": "Security advisory regarding Python/Conda/pip/PyPI | FAS Research Computing",
+        "url": "https://www.rc.fas.harvard.edu/blog/security-advisory-03012021"
+      },
+      {
+        "score": 0.5097406,
+        "snippet": "On 2024-11-21, PyPI was notified about a malware attack with few details. Upon further investigation, we found that the maintainer was injecting obfuscated code that will exfiltrate credentials to a specific Telegram bot. The credentials include tokens, API servers, and other Crypto Pay-related data, and it is unknown to PyPI Security whether these...[truncated]",
+        "title": "Malware Package Analysis: aiocpa - The Python Package Index Blog",
+        "url": "https://blog.pypi.org/posts/2024-11-25-aiocpa-attack-analysis"
+      },
+      {
+        "score": 0.4358301,
+        "snippet": "Your application keeps running \u2013 but protection fades. Python security comes in pieces. Each tool drops you somewhere along the way. SecureChain doesn't. SecureChain is different because it's not advisory \u2013 it's active. And it doesn't stop when the maintainer does. SecureChain for Open Source Software ### Full lifecycle security for PyPI packages F...[truncated]",
+        "title": "Are PyPI Packages Safe? Vet & Patch Python Dependencies Beyond EOL",
+        "url": "https://tuxcare.com/securechain-for-oss/python"
+      },
+      {
+        "score": 0.434102,
+        "snippet": "Warning PyPI accounts without two-factor authentication are vulnerable to credential theft and account takeover attacks, potentially allowing malicious actors to publish compromised versions of your packages. The LiteLLM incident1 demonstrated how compromised maintainer credentials can lead to malicious package uploads reaching millions of users. [...[truncated]",
+        "title": "GitHub - lirantal/pypi-security-best-practices: Collection of PyPI registry package manager Security Best Practices featuring uv and pip \u00b7 GitHub",
+        "url": "https://github.com/lirantal/pypi-security-best-practices"
+      },
+      {
+        "score": 0.37175277,
+        "snippet": "Four other vendors flagged the binary as malware. ## RAT Mutants: Information Stealers and Remote Access Trojans In late December 2022 and early January 2023, our security researchers also detected six malicious packages in PyPI that combined the capabilities of a remote access trojan (RAT) and information stealers. We coined them \"RAT mutants.\" Th...[truncated]",
+        "title": "Top 8 Malicious Packages Recently Found on PyPI | Sonatype",
+        "url": "https://www.sonatype.com/blog/top-8-malicious-attacks-recently-found-on-pypi"
+      }
+    ],
+    "latency_ms": 2375,
+    "query": "pypi requests-security-patch malware advisory"
+  }
+}

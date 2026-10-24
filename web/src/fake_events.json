@@ -116,27 +116,47 @@
     },
     "judge": {
       "verdict": "deny",
-      "confidence": 0.92,
-      "reason": "Package appears to be a typosquat mimic of requests. Installation rejected.",
-      "risk_tags": ["typosquat", "untrusted_source"],
+      "confidence": 0.96,
+      "reason": "Tavily threat intelligence confirmed requests-security-patch is a malicious PyPI typosquat (OSV-2026-4412) executing setup.py credential exfiltration.",
+      "risk_tags": ["typosquat", "supply_chain_malware", "osv_confirmed"],
       "needs_intel": true,
-      "intel_query": "requests-security-patch malicious pypi package",
+      "intel_query": "pypi requests-security-patch malware advisory",
       "model_id": "nvidia/Nemotron-3_5-Lightning",
-      "latency_ms": 480,
-      "tokens_in": 310,
-      "tokens_out": 42
+      "latency_ms": 385,
+      "tokens_in": 412,
+      "tokens_out": 46
+    },
+    "intel": {
+      "query": "pypi requests-security-patch malware advisory",
+      "cached": false,
+      "latency_ms": 312,
+      "items": [
+        {
+          "title": "OSV-2026-4412: Malicious Typosquat Package requests-security-patch on PyPI",
+          "url": "https://osv.dev/vulnerability/OSV-2026-4412",
+          "snippet": "Malicious package mimicking urllib/requests. Executes post-install hook in setup.py to exfiltrate environment variables and SSH keys.",
+          "score": 0.97
+        },
+        {
+          "title": "Snyk Security Advisory: pip/requests-security-patch",
+          "url": "https://security.snyk.io/package/pip/requests-security-patch",
+          "snippet": "Flagged as supply-chain malware (CWE-506). Do not install in CI or agent environments.",
+          "score": 0.93
+        }
+      ]
     },
     "final": {
       "decision": "deny",
-      "risk": 0.88,
-      "reasons": ["AI Judge (Nemotron) flagged typosquat package installation"]
+      "risk": 0.96,
+      "reasons": ["Blocked after Tavily Intel + Nemotron AI Judge confirmed PyPI typosquat malware (OSV-2026-4412)"]
     },
     "latency_breakdown_ms": {
       "normalize": 1,
       "detectors": 4,
-      "judge": 480,
+      "intel": 312,
+      "judge": 385,
       "policy": 1,
-      "total": 486
+      "total": 703
     }
   },
   {
@@ -214,4 +234,3 @@
     }
   }
 ]
-

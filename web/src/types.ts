@@ -20,6 +20,20 @@ export interface JudgeVerdict {
   tokens_out?: number;
 }
 
+export interface IntelItem {
+  title: string;
+  url: string;
+  snippet: string;
+  score: number;
+}
+
+export interface IntelResult {
+  query: string;
+  items: IntelItem[];
+  cached: boolean;
+  latency_ms: number;
+}
+
 export interface FinalDecision {
   decision: 'allow' | 'deny' | 'redact' | 'require_approval';
   risk: number;
@@ -41,7 +55,7 @@ export interface AuditEvent {
   call_id: string;
   context: ToolCallContext;
   judge?: JudgeVerdict | null;
+  intel?: IntelResult | null;
   final: FinalDecision;
   latency_breakdown_ms?: Record<string, number>;
 }
-

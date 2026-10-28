@@ -6,19 +6,25 @@ import os
 import time
 from pathlib import Path
 from typing import Annotated
+from uuid import uuid4
 
 import typer
 
+from zem.audit.pin_store import PinStore
 from zem.audit.store import SqliteAudit
 from zem.detectors.install_guard import InstallGuard
 from zem.detectors.net_guard import NetGuard
 from zem.detectors.outbound_guard import OutboundGuard
 from zem.detectors.path_guard import PathGuard
+from zem.detectors.pin_guard import PinGuard, PinState, safe_name
 from zem.detectors.secret_guard import SecretGuard
 from zem.detectors.shell_guard import ShellGuard
 from zem.detectors.tool_guard import ToolGuard
 from zem.detectors.unicode_guard import UnicodeGuard
+from zem.pipeline.egress import make_egress_hook
+from zem.pipeline.hooks import chain_hooks
 from zem.pipeline.orchestrator import Pipeline, make_interceptor
+from zem.pipeline.pins import make_pin_hook
 from zem.policy.loader import PolicyError, load_policy
 from zem.protocol.stdio_proxy import run_proxy
 
@@ -48,6 +54,8 @@ def wrap(
         typer.echo(f"[zem] {exc}", err=True)
         raise typer.Exit(2) from exc
     roots = root or pol.allowed_roots
+    pin_store = PinStore(db) if pol.pins.enabled else None
+    pin_state = PinState(pin_store.quarantined(server_name) if pin_store else None)
     pipeline = Pipeline(
         [
             PathGuard(roots),
@@ -58,6 +66,7 @@ def wrap(
             ToolGuard(pol.tools.allow, pol.tools.deny),
             InstallGuard(pol.known_packages),
             OutboundGuard(),
+            PinGuard(pin_state),
         ],
         hard_codes=pol.hard_deny_codes,
     )
@@ -80,8 +89,24 @@ def wrap(
         raise typer.Exit(2)
     if pol.judge.enabled and reasoner is None:
         typer.echo("[zem] WARNING: judge enabled but no reasoner; gray calls use on_error", err=True)
-    interceptor = make_interceptor(pipeline, server=server_name, audit=SqliteAudit(db), reasoner=reasoner, policy=pol )
-    code = asyncio.run(run_proxy(cmd, interceptor))
+    sid = uuid4().hex  # one id shared by request rows and result rows
+    audit = SqliteAudit(db)
+    interceptor = make_interceptor(
+        pipeline, server=server_name, session_id=sid, audit=audit, reasoner=reasoner, policy=pol
+    )
+    hooks = []
+    if pin_store is not None:
+        hooks.append(
+            make_pin_hook(
+                pol.pins, store=pin_store, state=pin_state, audit=audit,
+                server=server_name, session_id=sid,
+            )
+        )
+    if pol.egress.enabled:
+        hooks.append(make_egress_hook(pol.egress, audit=audit, server=server_name, session_id=sid))
+    hook = chain_hooks(*hooks) if hooks else None
+    code = asyncio.run(run_proxy(cmd, interceptor, hook))    
+
     raise typer.Exit(code)
 
 
@@ -123,6 +148,7 @@ def stats(db: Annotated[str, typer.Option("--db")] = DEFAULT_DB) -> None:
     """% of calls decided without a model, and judge latency p50/p95."""
     rows = SqliteAudit(db).db.execute("SELECT event_json FROM events").fetchall()
     events = [json.loads(r["event_json"]) for r in rows]
+    events = [e for e in events if not e["context"]["tool"].endswith(("[result]", "[pin]"))]
     if not events:
         typer.echo("no events")
         return
@@ -140,6 +166,52 @@ def stats(db: Annotated[str, typer.Option("--db")] = DEFAULT_DB) -> None:
 def version() -> None:
     """Print the ZEM version."""
     typer.echo("zem 0.1.0")
+
+pins_app = typer.Typer(no_args_is_help=True, help="Review and approve pinned tool definitions")
+app.add_typer(pins_app, name="pins")
+
+
+@pins_app.command("list")
+def pins_list(
+    server: Annotated[str | None, typer.Option("--server")] = None,
+    db: Annotated[str, typer.Option("--db")] = DEFAULT_DB,
+) -> None:
+    """Show every pinned tool and whether it is quarantined."""
+    rows = PinStore(db).rows(server)
+    if not rows:
+        typer.echo("no pins")
+        return
+    for p in rows:
+        pend = f" pending={p.pending_hash[:12]}" if p.pending_hash else ""
+        typer.echo(
+            f"{safe_name(p.server):<12} {safe_name(p.tool):<24} {p.status:<11} "
+            f"{p.hash[:12]}{pend} {safe_name(p.reason, 40)} {p.first_seen[:10]}"
+        )
+
+
+@pins_app.command("approve")
+def pins_approve(
+    server: Annotated[str, typer.Argument()],
+    tool: Annotated[str, typer.Argument()],
+    db: Annotated[str, typer.Option("--db")] = DEFAULT_DB,
+) -> None:
+    """Accept the tool's current definition. Restart the wrapped server afterwards."""
+    if PinStore(db).approve(server, tool):
+        typer.echo(f"approved {safe_name(server)}/{safe_name(tool)}. Restart the wrapped server.")
+        return
+    typer.echo("no such pin", err=True)
+    raise typer.Exit(1)
+
+
+@pins_app.command("forget")
+def pins_forget(
+    server: Annotated[str, typer.Argument()],
+    tool: Annotated[str | None, typer.Argument()] = None,
+    db: Annotated[str, typer.Option("--db")] = DEFAULT_DB,
+) -> None:
+    """Delete pins (one tool, or the whole server). Use after a deliberate server upgrade."""
+    n = PinStore(db).forget(server, tool)
+    typer.echo(f"forgot {n} pin(s)")
 
 
 if __name__ == "__main__":

@@ -23,6 +23,10 @@ FILES: dict[str, str] = {
     "/workspace/src/main.py": "print('hello from the demo project')\n",
     "/workspace/.env": f"AWS_ACCESS_KEY_ID={FAKE_AWS_KEY}\n",
     "/etc/passwd": "root:x:0:0:root:/root:/bin/bash\n(simulated file)\n",
+    "/workspace/config/settings.py": f'AWS_KEY = "{FAKE_AWS_KEY}"\nDEBUG = True\n',
+    "/workspace/data/customers.csv": (
+        "name,cnic,email\nAli,35202-1234567-1,ali@example.com\n"
+    ),
 }
 
 

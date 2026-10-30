@@ -41,7 +41,7 @@ export function App() {
   // 0. Live Backend Telemetry & SSE Stream Connection
   useEffect(() => {
     let isMounted = true;
-    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
     // A. Fetch recent decisions on mount
     fetch(`${API_BASE}/api/decisions?limit=50`)

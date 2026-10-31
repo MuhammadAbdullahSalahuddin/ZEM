@@ -212,7 +212,17 @@ def pins_forget(
     """Delete pins (one tool, or the whole server). Use after a deliberate server upgrade."""
     n = PinStore(db).forget(server, tool)
     typer.echo(f"forgot {n} pin(s)")
+@app.command()
+def serve(
+    host: Annotated[str, typer.Option("--host")] = "127.0.0.1",
+    port: Annotated[int, typer.Option("--port")] = 8000,
+    db: Annotated[str, typer.Option("--db")] = DEFAULT_DB,
+) -> None:
+    """Start the dashboard API:  zem serve"""
+    import uvicorn
 
+    os.environ["ZEM_DB"] = db  # the API reads this when it loads
+    uvicorn.run("zem.api.app:app", host=host, port=port)
 
 if __name__ == "__main__":
     app()

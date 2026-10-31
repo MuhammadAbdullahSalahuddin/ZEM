@@ -1,12 +1,19 @@
 services:
   zem:
     build: .
+    image: zem:latest
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      ZEM_REASONER: ${ZEM_REASONER:-mock}
+      ZEM_ENRICHER: ${ZEM_ENRICHER:-mock}
+      ZEM_DB: /data/zem.db
     volumes:
       - zem-data:/data
-    # R1-K1 (Karachi): once `zem serve` and the API exist, change the CMD to
-    # `zem serve --host 0.0.0.0 --port 8000` and uncomment:
-    # ports:
-    #   - "8000:8000"
 
 volumes:
   zem-data:

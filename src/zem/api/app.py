@@ -3,10 +3,12 @@ from __future__ import annotations
 import asyncio
 import json
 from collections.abc import AsyncIterator
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sse_starlette.sse import EventSourceResponse
 
 from zem.api.data_source import (
@@ -125,3 +127,6 @@ async def stream_decisions(
             await asyncio.sleep(0.5)
 
     return EventSourceResponse(event_generator(), ping=15)
+_WEB_DIST = Path(__file__).resolve().parents[3] / "web" / "dist"
+if _WEB_DIST.is_dir():  # only when the dashboard has been built
+    app.mount("/", StaticFiles(directory=_WEB_DIST, html=True), name="web")
